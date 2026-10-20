@@ -2,7 +2,7 @@
 # Multi-stage build. Targets: `web` (Caddy + built frontend, terminates HTTPS) and `api` (default; Node backend).
 # BuildKit cache mounts keep npm downloads between builds so rebuilds are fast.
 
-FROM node:22-alpine AS deps
+FROM node:26-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
 COPY apps/api/package.json apps/api/
@@ -14,7 +14,7 @@ FROM deps AS build
 COPY . .
 RUN npm run build -w @ek/web
 
-FROM node:22-alpine AS prod-deps
+FROM node:26-alpine AS prod-deps
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
 COPY apps/api/package.json apps/api/
@@ -29,7 +29,7 @@ COPY --from=build /app/apps/web/dist /srv
 EXPOSE 80 443
 
 # ---- backend (default target) ----
-FROM node:22-alpine AS api
+FROM node:26-alpine AS api
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=prod-deps /app/node_modules ./node_modules
