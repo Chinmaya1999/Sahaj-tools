@@ -5,6 +5,8 @@ import { Alert, Badge, Button, Card, Empty, Input, Select, Spinner } from "../..
 import { useToast } from "../../components/toast";
 import { ApiError, api, errMsg } from "../../lib/api";
 import { fmtDate } from "../../lib/format";
+import { ScanButton } from "../../components/ScanButton";
+import { canShare, shareText } from "../../lib/native";
 import { ErrorNote, Rs, Sheet, StatusBadge, newKey, useDebounced, useMs, useRefreshAll, type Nav } from "./common";
 
 const FILTERS: [string, string][] = [["", "All"], ["draft,confirmed,packed", "To dispatch"], ["shipped", "Shipped"], ["unpaid", "Unpaid"], ["delivered", "Delivered"], ["partially_returned,returned", "Returns"], ["cancelled", "Cancelled"]];
@@ -45,7 +47,7 @@ export function Receipt({ orderId }: { orderId: string }) {
           <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatInr(o.totalPaise)}</span></div><div className="flex justify-between"><span>Paid</span><span>{formatInr(o.paidPaise)}</span></div>{o.outstandingPaise > 0 && <div className="flex justify-between font-semibold"><span>Balance due</span><span>{formatInr(o.outstandingPaise)}</span></div>}</div>
         {payments.length > 0 && <p className="mt-2 text-xs text-ink-2">{payments.map((p: any) => `${p.kind === "refund" ? "Refund" : "Paid"} ${formatInr(p.amountPaise)} by ${p.method}${p.status === "pending" ? " (pending)" : ""}`).join(" · ")}</p>}
       </div>
-      <div className="no-print mt-3 flex flex-wrap gap-2"><Button variant="secondary" onClick={() => window.print()}>Print</Button><a className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-paper-2" target="_blank" rel="noreferrer" href={`https://wa.me/?text=${encodeURIComponent(text)}`}>Share on WhatsApp</a></div>
+      <div className="no-print mt-3 flex flex-wrap gap-2"><Button variant="secondary" onClick={() => window.print()}>Print</Button>{canShare() ? <Button variant="secondary" onClick={() => void shareText(text, o.number).catch(() => undefined)}>Share</Button> : null}<a className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-paper-2" target="_blank" rel="noreferrer" href={`https://wa.me/?text=${encodeURIComponent(text)}`}>Share on WhatsApp</a></div>
     </div>
   );
 }
@@ -104,7 +106,7 @@ function ShipForm({ onSubmit, loading }: { onSubmit: (b: any) => void; loading: 
 function PackForm({ order, onSubmit, loading, err }: { order: any; onSubmit: (scans: string[]) => void; loading: boolean; err: ApiError | null }) {
   const [scans, setScans] = useState<string[]>([]); const [c, setC] = useState("");
   return <div className="mt-4 rounded-2xl border border-line p-3"><p className="mb-2 text-sm text-ink-2">Scan each item to check the parcel (optional). Needed: {order.lines.map((l: any) => `${l.sku} × ${l.quantity}`).join(", ")}.</p>
-    <form className="flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); if (c.trim()) { setScans([...scans, c.trim()]); setC(""); } }}><Input label="Scan item" value={c} onChange={(e) => setC(e.target.value)} className="flex-1" /><Button type="submit" variant="secondary">Add</Button></form>
+    <form className="flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); if (c.trim()) { setScans([...scans, c.trim()]); setC(""); } }}><Input label="Scan item" value={c} onChange={(e) => setC(e.target.value)} className="flex-1" /><Button type="submit" variant="secondary">Add</Button><ScanButton onCode={(c) => setScans((x) => [...x, c])} /></form>
     {scans.length > 0 && <p className="mt-2 text-sm">Scanned {scans.length}: {scans.join(", ")} <button type="button" className="underline" onClick={() => setScans([])}>clear</button></p>}
     {err?.code === "PACK_MISMATCH" && <Alert tone="bad" title="Scans do not match this order">{err.body.missing?.length ? `Missing: ${err.body.missing.map((m: any) => `${m.sku} ×${m.missing}`).join(", ")}. ` : ""}{err.body.extra?.length ? `Extra: ${err.body.extra.map((m: any) => `${m.sku} ×${m.extra}`).join(", ")}. ` : ""}{err.body.wrongVariant?.length ? `Wrong item: ${err.body.wrongVariant.join(", ")}. ` : ""}{err.body.unknown?.length ? `Unknown code: ${err.body.unknown.join(", ")}.` : ""}</Alert>}
     <Button className="mt-3" onClick={() => onSubmit(scans)} loading={loading}>{scans.length ? "Verify and mark packed" : "Mark packed without scanning"}</Button></div>;

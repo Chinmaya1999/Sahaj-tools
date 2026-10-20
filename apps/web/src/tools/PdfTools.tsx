@@ -4,6 +4,7 @@ import { PDFDocument, degrees } from "pdf-lib";
 import { Alert, Button, Card, Input, cx } from "../components/ui";
 import { Dropzone } from "../components/Dropzone";
 import { useAccess } from "../lib/data";
+import { isMobileApp } from "../lib/native";
 import { download, fmtBytes } from "../lib/format";
 
 type Mode = "merge" | "split" | "organize" | "images" | "optimize";
@@ -196,7 +197,7 @@ export default function PdfTools() {
       {err && <Alert tone="bad">{err}</Alert>}
       {outs.length > 0 && (
         <Card className="space-y-2 p-4"><h2 className="text-lg">Result</h2>
-          <ul className="space-y-1 text-sm">{outs.map((o) => <li key={o.name} className="flex flex-wrap items-center justify-between gap-2"><span>{o.name} · <b>{fmtBytes(o.blob.size)}</b>{o.note && <span className="text-ink-2"> · {o.note}</span>}</span><span className="flex gap-2"><Button variant="secondary" onClick={() => window.open(URL.createObjectURL(o.blob), "_blank")}>Preview</Button><Button variant="secondary" onClick={() => download(o.blob, o.name)}>Download</Button></span></li>)}</ul>
+          <ul className="space-y-1 text-sm">{outs.map((o) => <li key={o.name} className="flex flex-wrap items-center justify-between gap-2"><span>{o.name} · <b>{fmtBytes(o.blob.size)}</b>{o.note && <span className="text-ink-2"> · {o.note}</span>}</span><span className="flex gap-2"><Button variant="secondary" onClick={() => (isMobileApp() ? download(o.blob, o.name) : window.open(URL.createObjectURL(o.blob), "_blank"))}>{isMobileApp() ? "Open" : "Preview"}</Button><Button variant="secondary" onClick={() => download(o.blob, o.name)}>Download</Button></span></li>)}</ul>
           {outs.length > 1 && <Button onClick={saveAll}>Download all as ZIP</Button>}
         </Card>)}
     </div>

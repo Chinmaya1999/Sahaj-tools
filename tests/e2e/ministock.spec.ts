@@ -51,7 +51,7 @@ test.describe("MiniStock", () => {
     await expect(page.getByText("Sales revenue").first()).toBeVisible();
     await expect(page.getByText("Gross profit").first()).toBeVisible();
     await page.getByRole("tab", { name: "Insights" }).click();
-    await expect(page.getByRole("link", { name: "Download CSV" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Download CSV" })).toBeVisible();
   });
 
   test("unknown barcode shows Product not found and creates nothing; overselling is refused", async ({ page }) => {

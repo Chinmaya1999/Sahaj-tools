@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { setSystemBars } from "./native";
 
 export type Theme = "dark" | "light";
 const KEY = "sahaj-theme";
@@ -12,6 +13,7 @@ export function currentTheme(): Theme {
 function apply(t: Theme) {
   document.documentElement.dataset.theme = t;
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", META[t]);
+  setSystemBars(t);
 }
 
 export function useTheme() {

@@ -7,6 +7,7 @@ import { LinkButton, Spinner, cx } from "./ui";
 import { ThemeToggle } from "../lib/theme";
 import { AppShell } from "./AppShell";
 import { Logo } from "./Logo";
+import { isApp } from "../lib/native";
 
 const links = [["/explore", "Tools"], ["/free-tools", "Free tools"], ["/pricing", "Pricing"], ["/bundles", "Bundles"], ["/help", "Help"]] as const;
 
@@ -16,6 +17,7 @@ export { Logo, LogoMark } from "./Logo";
 function BackBar() {
   const nav = useNavigate(); const loc = useLocation();
   if (loc.pathname === "/" || loc.pathname.startsWith("/p/")) return null;
+  if (isApp() && ["/login", "/register"].includes(loc.pathname)) return null; // the apps open on these screens: nothing to go back to
   const canGoBack = (window.history.state?.idx ?? 0) > 0;
   return (
     <div className="no-print mx-auto w-full max-w-6xl px-4 pt-4">
@@ -47,14 +49,15 @@ export function Layout() {
   const navCls = ({ isActive }: { isActive: boolean }) => cx("rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper-2", isActive && "bg-paper-2");
   // Signed-in users get the workspace (sidebar, search, quick-create); visitors get the marketing site.
   if (user) return <AppShell />;
+  const inApp = isApp();
   return (
     <div className="flex min-h-screen flex-col">
       <a href="#main" className="skip-link">Skip to content</a>
       <header className="no-print sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl md:h-16 items-center justify-between px-4">
           <Link to="/" aria-label={`${BRAND.name} home`}><Logo /></Link>
-          <nav aria-label="Main" className="hidden items-center gap-1 md:flex">{links.map(([to, t]) => <NavLink key={to} to={to} className={navCls}>{t}</NavLink>)}</nav>
-          <div className="hidden items-center gap-2 md:flex">
+          {!inApp && <nav aria-label="Main" className="hidden items-center gap-1 md:flex">{links.map(([to, t]) => <NavLink key={to} to={to} className={navCls}>{t}</NavLink>)}</nav>}
+          <div className={cx("items-center gap-2", inApp ? "hidden" : "hidden md:flex")}>
             <ThemeToggle />
             <LinkButton to="/login" variant="ghost">Sign in</LinkButton><LinkButton to="/register">Get started</LinkButton>
           </div>
@@ -65,8 +68,8 @@ export function Layout() {
       <main id="main" className="flex-1 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0" key={loc.pathname.split("/")[1]}>
         <motion.div initial={reduce ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}><Outlet /></motion.div>
       </main>
-      <Footer />
-      <TabBar />
+      {inApp ? <AppFooter /> : <Footer />}
+      {!inApp && <TabBar />}
     </div>
   );
 }
@@ -91,6 +94,17 @@ function TabBar() {
   );
 }
 
+/** Compact footer for the apps: store policies require the legal links to be reachable. */
+function AppFooter() {
+  return (
+    <footer className="no-print border-t border-line px-4 py-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-center text-xs text-ink-2">
+      <p className="flex flex-wrap justify-center gap-x-4 gap-y-1"><Link className="underline" to="/terms">Terms</Link><Link className="underline" to="/privacy">Privacy</Link><Link className="underline" to="/refunds">Refunds</Link><Link className="underline" to="/help">Help</Link><Link className="underline" to="/contact">Contact</Link></p>
+      <p className="mt-2">© {new Date().getFullYear()} {BRAND.name}</p>
+    </footer>
+  );
+}
+
+const APPS_URL = "https://github.com/Chinmaya1999/Sahaj-tools/releases/latest";
 function Footer() {
   const col = (title: string, items: [string, string][]) => (
     <div><h2 className="font-sans text-sm font-semibold">{title}</h2><ul className="mt-3 space-y-2 text-sm text-ink-2">{items.map(([to, t]) => <li key={to}><Link className="hover:text-ink hover:underline" to={to}>{t}</Link></li>)}</ul></div>
@@ -102,6 +116,7 @@ function Footer() {
         {col("Tools", [["/tools/invoice", "Invoices"], ["/tools/resume", "Resume builder"], ["/tools/inventory", "Inventory"], ["/tools/pdf-tools", "PDF tools"], ["/tools/photo-tools", "Photo resize"]])}
         {col("Support", [["/bundles", "Bundles"], ["/help", "Help centre & FAQ"], ["/contact", "Contact support"], ["/pricing", "Pricing"]])}
         {col("Legal", [["/terms", "Terms of service"], ["/privacy", "Privacy policy"], ["/refunds", "Refund & cancellation"]])}
+        <div className="sm:col-span-2 md:col-span-4"><h2 className="font-sans text-sm font-semibold">Get the apps</h2><p className="mt-2 flex flex-wrap gap-2 text-sm">{["Android", "Windows", "iPhone & iPad"].map((n) => <a key={n} href={APPS_URL} target="_blank" rel="noreferrer" className="rounded-full border border-line px-4 py-2 text-ink-2 hover:border-brand hover:text-ink">{n}</a>)}</p></div>
       </div>
       <p className="border-t border-line py-4 text-center text-xs text-ink-2">© {new Date().getFullYear()} {BRAND.name}. Prices in INR.</p>
     </footer>

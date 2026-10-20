@@ -4,6 +4,7 @@ import { ADJUST_REASONS, formatInr, paiseToRupees, rupeesToPaise, suggestSku } f
 import { Alert, Badge, Button, Card, Empty, Input, Select, Spinner } from "../../components/ui";
 import { useToast } from "../../components/toast";
 import { ApiError, api, errMsg } from "../../lib/api";
+import { ScanButton } from "../../components/ScanButton";
 import { ErrorNote, Rs, Sheet, useDebounced, useMs, useRefreshAll, type Nav } from "./common";
 
 const blank = { name: "", category: "", productType: "", ageGroup: "", colour: "", sku: "", barcode: "", supplier: "", cost: "", price: "", openingQty: "0", reorderLevel: "0", taxPercent: "0" };
@@ -14,11 +15,12 @@ export function Products({ go }: Nav) {
   const list = useMs<any>(`/products?limit=25&page=${page}&low=${low}${dq ? `&q=${encodeURIComponent(dq)}` : ""}`);
   const [form, setForm] = useState(false); const [adjust, setAdjust] = useState<any>(null); const [counting, setCounting] = useState(false); const [scan, setScan] = useState<any>(null);
   const [code, setCode] = useState(""); const [scanErr, setScanErr] = useState("");
-  async function lookup(e: React.FormEvent) {
-    e.preventDefault(); setScanErr(""); if (!code.trim()) return;
-    try { setScan(await api(`/ministock/products/barcode/${encodeURIComponent(code.trim())}`)); }
+  async function lookupCode(raw: string) {
+    setScanErr(""); const c = raw.trim(); if (!c) return;
+    try { setScan(await api(`/ministock/products/barcode/${encodeURIComponent(c)}`)); }
     catch (err) { setScan(null); setScanErr(err instanceof ApiError && err.code === "PRODUCT_NOT_FOUND" ? "Product not found. Try the scan again, or add it as a new product. Nothing was created." : errMsg(err)); }
   }
+  const lookup = (e: React.FormEvent) => { e.preventDefault(); void lookupCode(code); };
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
@@ -26,7 +28,7 @@ export function Products({ go }: Nav) {
         <Button onClick={() => setForm(true)}>+ Add product</Button>
         <Button variant="secondary" onClick={() => setCounting(true)}>Count stock</Button>
       </div>
-      <form onSubmit={lookup} className="flex items-end gap-2"><Input label="Scan barcode / QR or type SKU" value={code} onChange={(e) => setCode(e.target.value)} className="flex-1" /><Button type="submit" variant="secondary">Find</Button></form>
+      <form onSubmit={lookup} className="flex items-end gap-2"><Input label="Scan barcode / QR or type SKU" value={code} onChange={(e) => setCode(e.target.value)} className="flex-1" /><Button type="submit" variant="secondary">Find</Button><ScanButton onCode={(c) => { setCode(c); void lookupCode(c); }} /></form>
       {scanErr && <Alert tone="warn">{scanErr} <button type="button" className="font-semibold underline" onClick={() => setForm(true)}>Add product</button></Alert>}
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={low} onChange={(e) => { setLow(e.target.checked); setPage(1); }} /> Show only low stock</label>
       {list.isLoading ? <Spinner /> : list.error ? <Alert tone="bad">{errMsg(list.error)}</Alert> : !list.data.products.length ? <Empty title={q || low ? "No products match" : "No products yet"}>{!q && !low && <Button className="mt-3" onClick={() => setForm(true)}>Add your first product</Button>}</Empty> : (

@@ -222,3 +222,9 @@ aside nav::-webkit-scrollbar { width: 6px; } aside nav::-webkit-scrollbar-thumb 
 @media (max-width: 1023px) { .tab-bar { grid-template-columns: repeat(5, 1fr); } }
 @media (min-width: 768px) and (max-width: 1023px) { .tab-bar { display: grid; max-width: 32rem; margin-inline: auto; } }
 @media (min-width: 1024px) { .tab-bar { display: none; } }
+
+/* ---------- Inside the Android / iOS / Windows apps ---------- */
+html.app { -webkit-tap-highlight-color: transparent; }
+html.app body { overscroll-behavior-y: none; -webkit-touch-callout: none; }
+html.app .tab-bar, html.app header.sticky { -webkit-user-select: none; user-select: none; }
+html.app-android a, html.app-android button { touch-action: manipulation; }

@@ -16,3 +16,4 @@ playwright.config.ts
 deploy/*
 !deploy/Caddyfile
 README.md
+clients

@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "online.cmcloud.sahaj",
+      "sha256_cert_fingerprints": ["6F:DE:85:D6:02:9B:73:8D:70:64:D6:28:7E:80:2D:49:31:82:B3:66:D8:FF:43:F2:4E:CB:B9:02:F6:62:AC:FE"]
+    }
+  }
+]

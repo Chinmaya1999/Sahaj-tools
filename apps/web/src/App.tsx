@@ -16,12 +16,14 @@ import PublicPage from "./pages/PublicPage";
 import NotFound from "./pages/NotFound";
 import ToolPage from "./tools";
 import { useAuth } from "./lib/auth";
+import { isApp } from "./lib/native";
 
 /** The marketing home page is for visitors. Signed-in users land in their workspace. */
 function HomeOrWorkspace() {
   const { user, loading } = useAuth();
   if (loading) return <div className="grid place-items-center py-24"><Spinner /></div>;
-  return user ? <Navigate to="/account" replace /> : <Home />;
+  if (user) return <Navigate to="/account" replace />;
+  return isApp() ? <Navigate to="/login" replace /> : <Home />; // the apps open on sign-in; the website shows the marketing page
 }
 /** Sign-in and sign-up pages are skipped when you are already signed in. */
 function GuestOnly({ children }: { children: React.ReactNode }) {

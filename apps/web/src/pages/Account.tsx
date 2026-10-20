@@ -7,6 +7,7 @@ import { useAuth } from "../lib/auth";
 import { download, fmtDate } from "../lib/format";
 import { Alert, Badge, Button, Card, Empty, Input, LinkButton, PageHeader, Spinner, Table, Td, Th, cx } from "../components/ui";
 import { useToast } from "../components/toast";
+import { isMobileApp, printHtmlNative } from "../lib/native";
 
 const TITLES: Record<string, [string, string]> = {
   "/account/orders": ["Orders & receipts", "Everything you have bought, with receipts and refund status."],
@@ -193,9 +194,12 @@ export function Orders() {
   );
 }
 function printReceipt(o: any) {
-  const w = window.open("", "_blank", "width=640,height=800"); if (!w) return;
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
-  w.document.write(`<title>Receipt ${esc(o.receiptNo)}</title><body style="font-family:sans-serif;max-width:520px;margin:40px auto"><h1>Sahaj receipt</h1><p>Receipt: <b>${esc(o.receiptNo)}</b><br>Date: ${fmtDate(o.paidAt)}<br>Order: ${esc(o.id)}</p><table style="width:100%;border-collapse:collapse"><tr><td>${esc(o.title)}</td><td style="text-align:right">${esc(formatInr(o.amountPaise, { compact: false }))}</td></tr></table><p>Status: ${esc(o.status)}. Paid via ${esc(o.provider)}.</p><p style="color:#666;font-size:12px">This is a payment receipt, not a tax invoice.</p></body>`);
+  const html = `<title>Receipt ${esc(o.receiptNo)}</title><body style="font-family:sans-serif;max-width:520px;margin:40px auto"><h1>Sahaj receipt</h1><p>Receipt: <b>${esc(o.receiptNo)}</b><br>Date: ${fmtDate(o.paidAt)}<br>Order: ${esc(o.id)}</p><table style="width:100%;border-collapse:collapse"><tr><td>${esc(o.title)}</td><td style="text-align:right">${esc(formatInr(o.amountPaise, { compact: false }))}</td></tr></table><p>Status: ${esc(o.status)}. Paid via ${esc(o.provider)}.</p><p style="color:#666;font-size:12px">This is a payment receipt, not a tax invoice.</p></body>`;
+  // The Android app prints through the system print service (a new browser window does not exist there).
+  if (isMobileApp()) { void printHtmlNative(html, `Receipt ${o.receiptNo}`); return; }
+  const w = window.open("", "_blank", "width=640,height=800"); if (!w) return;
+  w.document.write(html);
   w.document.close(); w.print();
 }
 

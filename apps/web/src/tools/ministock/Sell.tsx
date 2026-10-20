@@ -5,6 +5,7 @@ import { Alert, Button, Card, Input, Select, Spinner } from "../../components/ui
 import { ApiError, api, errMsg } from "../../lib/api";
 import { ErrorNote, Rs, newKey, useDebounced, useMs, useRefreshAll, type Nav } from "./common";
 import { Receipt } from "./Orders";
+import { ScanButton } from "../../components/ScanButton";
 
 interface Line { id: string; name: string; sku: string; available: number; qty: number; price: string; discount: string; taxPercent: number }
 
@@ -21,11 +22,12 @@ export function Sell({ go }: Nav) {
   const key = useRef(newKey()); const [done, setDone] = useState<any>(null);
 
   const addProduct = (p: any) => { setCart((c) => (c.some((l) => l.id === p.id) ? c.map((l) => (l.id === p.id ? { ...l, qty: l.qty + 1 } : l)) : [...c, { id: p.id, name: p.name, sku: p.sku, available: p.available, qty: 1, price: paiseToRupees(p.pricePaise), discount: "", taxPercent: p.taxPercent ?? 0 }])); setQ(""); };
-  async function scan(e: React.FormEvent) {
-    e.preventDefault(); setScanMsg(""); const c = code.trim(); if (!c) return;
+  async function addByCode(raw: string) {
+    setScanMsg(""); const c = raw.trim(); if (!c) return;
     try { addProduct((await api<any>(`/ministock/products/barcode/${encodeURIComponent(c)}`)).product); setCode(""); }
     catch (err) { setScanMsg(err instanceof ApiError && err.code === "PRODUCT_NOT_FOUND" ? "Product not found. Retry the scan, or add it from Products." : errMsg(err)); }
   }
+  const scan = (e: React.FormEvent) => { e.preventDefault(); void addByCode(code); };
   const upd = (id: string, patch: Partial<Line>) => setCart((c) => c.map((l) => (l.id === id ? { ...l, ...patch } : l)));
 
   // Preview only. The server recalculates every amount and its result is what is saved and shown on the receipt.
@@ -59,7 +61,7 @@ export function Sell({ go }: Nav) {
         {dq && (found.isLoading ? <Spinner /> : <ul className="space-y-1.5">{found.data?.products.length ? found.data.products.map((p: any) => (
           <li key={p.id}><button type="button" onClick={() => addProduct(p)} disabled={p.available < 1} className="flex w-full items-center justify-between gap-3 rounded-xl border border-line bg-card p-3 text-left hover:border-brand disabled:opacity-50"><span><b>{p.name}</b> <span className="text-sm text-ink-2">{[p.size, p.colour].filter(Boolean).join(" · ")} · {p.sku}</span></span><span className="text-right text-sm"><b>{formatInr(p.pricePaise)}</b><br /><span className="text-ink-2">{p.available} left</span></span></button></li>
         )) : <li className="text-sm text-ink-2">No match. Check the spelling or add it in Products.</li>}</ul>)}
-        <form onSubmit={scan} className="flex items-end gap-2"><Input label="Scan barcode / QR" value={code} onChange={(e) => setCode(e.target.value)} className="flex-1" /><Button type="submit" variant="secondary">Add</Button></form>
+        <form onSubmit={scan} className="flex items-end gap-2"><Input label="Scan barcode / QR" value={code} onChange={(e) => setCode(e.target.value)} className="flex-1" /><Button type="submit" variant="secondary">Add</Button><ScanButton onCode={(c) => void addByCode(c)} /></form>
         {scanMsg && <Alert tone="warn">{scanMsg}</Alert>}
         <h2 className="text-xl">Cart</h2>
         {!cart.length ? <p className="rounded-2xl border border-dashed border-line p-6 text-center text-sm text-ink-2">Search or scan a product to start a sale.</p> : (

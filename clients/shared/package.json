@@ -1,0 +1,9 @@
+{
+  "name": "@sahaj/client-brand",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Brand assets (icon, splash) shared by the Android, iOS and Windows apps",
+  "scripts": { "brand": "node make-brand.mjs" },
+  "devDependencies": { "sharp": "0.34.5" }
+}

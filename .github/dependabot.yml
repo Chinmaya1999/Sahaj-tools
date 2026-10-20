@@ -11,3 +11,15 @@ updates:
   - package-ecosystem: docker
     directory: /
     schedule: { interval: weekly }
+  - package-ecosystem: npm
+    directory: /clients/android
+    schedule: { interval: monthly }
+    open-pull-requests-limit: 3
+  - package-ecosystem: npm
+    directory: /clients/windows
+    schedule: { interval: monthly }
+    open-pull-requests-limit: 3
+  - package-ecosystem: npm
+    directory: /clients/ios
+    schedule: { interval: monthly }
+    open-pull-requests-limit: 3

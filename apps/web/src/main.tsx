@@ -8,6 +8,8 @@ import { AuthProvider } from "./lib/auth";
 import { ToastProvider } from "./components/toast";
 import { ApiError } from "./lib/api";
 import "./index.css";
+import { initNative } from "./lib/native";
+import { currentTheme } from "./lib/theme";
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: (n, e) => !(e instanceof ApiError && e.status < 500 && e.status !== 0) && n < 2, refetchOnWindowFocus: false } } });
 
@@ -22,3 +24,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </React.StrictMode>,
 );
+
+// Inside the Android/iOS/Windows apps: theme the system bars, wire printing and hide the native splash once the first screen is painted.
+setTimeout(() => initNative(currentTheme()), 120);

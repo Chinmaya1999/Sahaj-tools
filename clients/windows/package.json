@@ -1,0 +1,73 @@
+{
+  "name": "sahaj-desktop",
+  "productName": "Sahaj",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sahaj for Windows: the live Sahaj workspace in a secure desktop app with native menus, file saving, printing and automatic updates",
+  "author": "Sahaj <chinmaya.dob1999@gmail.com>",
+  "license": "UNLICENSED",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node scripts/start.js",
+    "test": "node test/smoke.mjs",
+    "dist": "electron-builder --win --x64 --publish never",
+    "dist:dir": "electron-builder --win --x64 --dir --publish never"
+  },
+  "build": {
+    "appId": "online.cmcloud.sahaj.desktop",
+    "productName": "Sahaj",
+    "copyright": "Copyright \u00a9 2026 Sahaj",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../shared/www/offline.html",
+        "to": "offline.html"
+      }
+    ],
+    "asar": true,
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Sahaj-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Sahaj",
+      "deleteAppDataOnUninstall": false
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Chinmaya1999",
+        "repo": "Sahaj-tools",
+        "releaseType": "release"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "6.8.9"
+  },
+  "devDependencies": {
+    "electron": "44.9.1",
+    "electron-builder": "26.15.3",
+    "playwright-core": "1.64.1"
+  }
+}

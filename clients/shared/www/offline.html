@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>Sahaj</title>
+<style>
+  :root { --bg:#050816; --card:#0b1129; --ink:#e8f1ff; --muted:#9db0d3; --line:#22305c; --brand:#22d3ee; }
+  @media (prefers-color-scheme: light) { :root { --bg:#eef3ff; --card:#fff; --ink:#0b1230; --muted:#46557a; --line:#c9d4ef; --brand:#0e7490; } }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: radial-gradient(60rem 40rem at 85% -10%, rgb(34 211 238 / .16), transparent 60%), radial-gradient(50rem 36rem at 0% 20%, rgb(167 139 250 / .16), transparent 60%), var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); }
+  main { width: 100%; max-width: 380px; text-align: center; }
+  .logo { width: 84px; height: 84px; border-radius: 22px; margin: 0 auto 22px; box-shadow: 0 0 40px -6px rgb(99 102 241 / .7); }
+  h1 { font-size: 26px; margin: 0 0 8px; letter-spacing: -.01em; }
+  p { color: var(--muted); line-height: 1.5; margin: 0 0 24px; }
+  button { appearance: none; border: 0; cursor: pointer; width: 100%; min-height: 52px; border-radius: 16px; font-size: 17px; font-weight: 700; color: #fff; background: linear-gradient(110deg, #0e7490, #4f46e5 55%, #a21caf); box-shadow: 0 10px 30px -10px rgb(79 70 229 / .8); }
+  button:active { transform: scale(.98); }
+  small { display: block; margin-top: 18px; color: var(--muted); font-size: 13px; min-height: 18px; }
+</style>
+</head>
+<body>
+<main>
+  <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6d6bf5"/><stop offset="1" stop-color="#3b33c4"/></linearGradient><linearGradient id="d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd166"/><stop offset="1" stop-color="#f59e0b"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#g)"/><path d="M43 21.5c-2.2-3.4-5.8-5.2-10.4-5.2-6.2 0-10.4 3.2-10.4 8 0 11.2 21.2 5.2 21.2 17.2 0 5-4.6 8.8-11.3 8.8-5 0-9.4-2.2-11.9-5.8" fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="48.5" cy="15.5" r="5" fill="url(#d)"/></svg>
+  <h1>You're offline</h1>
+  <p>Sahaj needs an internet connection to load your business data. Check your Wi-Fi or mobile data, then try again.</p>
+  <button id="retry" type="button">Try again</button>
+  <small id="status" role="status"></small>
+</main>
+<script>
+  // Sent here by the app shell when the live site could not be reached. Retries by going back to the live site.
+  var LIVE = "{{LIVE_URL}}"; // replaced at build time (scripts/prepare-www.mjs)
+  var s = document.getElementById("status");
+  function go() { s.textContent = "Connecting…"; window.location.replace(LIVE); }
+  document.getElementById("retry").addEventListener("click", go);
+  window.addEventListener("online", go);                 // came back online: reconnect on its own
+  try { window.Capacitor.Plugins.SplashScreen.hide(); } catch (e) {}
+</script>
+</body>
+</html>

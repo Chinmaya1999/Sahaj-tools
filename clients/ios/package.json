@@ -1,0 +1,30 @@
+{
+  "name": "@sahaj/ios",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Sahaj iOS app (Capacitor): the live Sahaj workspace with native scanning, sharing, file saving and system integration",
+  "scripts": {
+    "prepare:www": "node scripts/prepare-www.mjs",
+    "sync": "npm run prepare:www && cap sync ios",
+    "assets": "capacitor-assets generate --ios --assetPath ../shared/brand",
+    "open": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor-mlkit/barcode-scanning": "8.2.1",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/filesystem": "8.1.5",
+    "@capacitor/haptics": "8.0.2",
+    "@capacitor/ios": "8.5.3",
+    "@capacitor/keyboard": "8.0.6",
+    "@capacitor/network": "8.0.1",
+    "@capacitor/share": "8.0.3",
+    "@capacitor/splash-screen": "8.0.2",
+    "@capacitor/status-bar": "8.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "3.0.5",
+    "@capacitor/cli": "8.5.3",
+    "typescript": "5.9.3"
+  }
+}

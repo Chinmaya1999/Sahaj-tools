@@ -97,6 +97,8 @@ export function createApp(opts: AppOptions = {}) {
   // Serve the built web app (single-origin deployment) when present.
   const webDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../web/dist");
   if (fs.existsSync(webDist)) {
+    // Express skips dot-folders by default; /.well-known must be served (Android app links verification).
+    app.use("/.well-known", express.static(path.join(webDist, ".well-known"), { dotfiles: "allow", maxAge: "1h", index: false }));
     app.use(express.static(webDist, { index: false, maxAge: "1h" }));
     const indexHtml = fs.readFileSync(path.join(webDist, "index.html"), "utf8");
     const origin = env.WEB_ORIGIN.replace(/\/+$/, "");
