@@ -1,0 +1,27 @@
+{
+  "name": "everydaykit",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w @ek/api\" \"npm run dev -w @ek/web\"",
+    "build": "npm run build -w @ek/web && npm run typecheck -w @ek/api",
+    "typecheck": "npm run typecheck -w @ek/shared && npm run typecheck -w @ek/api && npm run typecheck -w @ek/web",
+    "test": "npm run test -w @ek/shared && npm run test -w @ek/api && npm run test -w @ek/web",
+    "test:e2e": "playwright test",
+    "seed": "npm run seed -w @ek/api",
+    "start": "npm run start -w @ek/api"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.64.1",
+    "@types/node": "26.6.5",
+    "concurrently": "10.0.6",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.0.5"
+  }
+}

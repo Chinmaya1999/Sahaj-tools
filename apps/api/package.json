@@ -1,0 +1,40 @@
+{
+  "name": "@ek/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "seed": "tsx src/scripts/seed.ts"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "2.2.2",
+    "cookie-parser": "1.4.7",
+    "cors": "2.8.6",
+    "dotenv": "18.0.8",
+    "express": "5.3.0",
+    "express-rate-limit": "8.7.1",
+    "helmet": "8.3.0",
+    "jszip": "3.10.2",
+    "mongoose": "9.11.2",
+    "multer": "2.4.0",
+    "nodemailer": "10.1.7",
+    "pino": "10.4.0",
+    "pino-http": "11.0.0",
+    "tsx": "4.23.15",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "1.4.10",
+    "@types/cors": "2.8.19",
+    "@types/express": "5.0.6",
+    "@types/multer": "2.3.0",
+    "@types/nodemailer": "8.0.2",
+    "@types/supertest": "7.2.1",
+    "mongodb-memory-server": "11.3.0",
+    "supertest": "7.3.1"
+  }
+}

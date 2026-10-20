@@ -1,0 +1,25 @@
+# Local development / self-hosting. Reads secrets from .env (copy .env.example).
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes: [mongo-data:/data/db]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mongo: { condition: service_healthy }
+    env_file: .env
+    environment:
+      # Overrides the Atlas URI in .env so `docker compose up` is fully local.
+      MONGODB_URI: mongodb://mongo:27017/everydaykit
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:4000}
+      NODE_ENV: ${NODE_ENV:-development}
+    ports: ["4000:4000"]
+volumes:
+  mongo-data:
