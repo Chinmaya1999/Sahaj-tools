@@ -5,7 +5,7 @@ Three native app shells around the live Sahaj workspace. Each one opens https://
 ```
 clients/
   android/   Android app (Capacitor 8, Kotlin/Java host, signed APK + AAB)   package: online.cmcloud.sahaj
-  ios/       iPhone/iPad app (Capacitor 8, CocoaPods, Xcode project)           bundle:  online.cmcloud.sahaj
+  ios/       iPhone/iPad app, iOS 16+ (Capacitor 8, CocoaPods, Xcode project)   bundle:  online.cmcloud.sahaj
   windows/   Windows desktop app (Electron 44, NSIS installer .exe)            id:      online.cmcloud.sahaj.desktop
   shared/    brand assets (icon, splash) generated from the logo + the offline page
 ```
