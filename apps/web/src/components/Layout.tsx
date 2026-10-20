@@ -5,22 +5,12 @@ import { BRAND, renderSeoHead } from "@ek/shared";
 import { useAuth } from "../lib/auth";
 import { LinkButton, Spinner, cx } from "./ui";
 import { ThemeToggle } from "../lib/theme";
+import { AppShell } from "./AppShell";
+import { Logo } from "./Logo";
 
 const links = [["/explore", "Tools"], ["/free-tools", "Free tools"], ["/pricing", "Pricing"], ["/bundles", "Bundles"], ["/help", "Help"]] as const;
 
-export function LogoMark({ size = 36 }: { size?: number }) {
-  return (
-    <svg aria-hidden width={size} height={size} viewBox="0 0 64 64" className="shrink-0">
-      <defs><linearGradient id="lm-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#6d6bf5" /><stop offset="1" stopColor="#3b33c4" /></linearGradient><linearGradient id="lm-s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffd166" /><stop offset="1" stopColor="#f59e0b" /></linearGradient></defs>
-      <rect width="64" height="64" rx="16" fill="url(#lm-g)" />
-      <path d="M43 21.5c-2.2-3.4-5.8-5.2-10.4-5.2-6.2 0-10.4 3.2-10.4 8 0 11.2 21.2 5.2 21.2 17.2 0 5-4.6 8.8-11.3 8.8-5 0-9.4-2.2-11.9-5.8" fill="none" stroke="#fff" strokeWidth="6.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="48.5" cy="15.5" r="5" fill="url(#lm-s)" />
-    </svg>
-  );
-}
-export function Logo({ light }: { light?: boolean }) {
-  return <span className="flex items-center gap-2.5"><LogoMark /><span className={cx("font-display text-2xl font-semibold leading-none tracking-tight", light && "text-white")}>{BRAND.name}</span></span>;
-}
+export { Logo, LogoMark } from "./Logo";
 
 /** Goes to the previous page; if the visitor landed here directly, goes home instead of leaving the site. */
 function BackBar() {
@@ -45,7 +35,7 @@ function useSeo(pathname: string) {
 }
 
 export function Layout() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const loc = useLocation();
   useSeo(loc.pathname);
   const reduce = useReducedMotion();
@@ -55,6 +45,8 @@ export function Layout() {
     window.scrollTo(0, 0);
   }, [loc.pathname, loc.hash, reduce]);
   const navCls = ({ isActive }: { isActive: boolean }) => cx("rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper-2", isActive && "bg-paper-2");
+  // Signed-in users get the workspace (sidebar, search, quick-create); visitors get the marketing site.
+  if (user) return <AppShell />;
   return (
     <div className="flex min-h-screen flex-col">
       <a href="#main" className="skip-link">Skip to content</a>
@@ -64,13 +56,9 @@ export function Layout() {
           <nav aria-label="Main" className="hidden items-center gap-1 md:flex">{links.map(([to, t]) => <NavLink key={to} to={to} className={navCls}>{t}</NavLink>)}</nav>
           <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
-            {user ? (<>
-              {user.role === "admin" && <LinkButton to="/admin" variant="ghost">Admin</LinkButton>}
-              <LinkButton to="/account" variant="secondary">My account</LinkButton>
-              <button className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper-2" onClick={() => logout()}>Sign out</button>
-            </>) : (<><LinkButton to="/login" variant="ghost">Sign in</LinkButton><LinkButton to="/register">Get started</LinkButton></>)}
+            <LinkButton to="/login" variant="ghost">Sign in</LinkButton><LinkButton to="/register">Get started</LinkButton>
           </div>
-          <div className="flex items-center gap-2 md:hidden"><ThemeToggle />{!user && <LinkButton to="/login" variant="secondary" className="!min-h-10 !px-3">Sign in</LinkButton>}</div>
+          <div className="flex items-center gap-2 md:hidden"><ThemeToggle /><LinkButton to="/login" variant="secondary" className="!min-h-10 !px-3">Sign in</LinkButton></div>
         </div>
       </header>
       <BackBar />
@@ -125,6 +113,6 @@ export function RequireAuth({ admin }: { admin?: boolean }) {
   const loc = useLocation();
   if (loading) return <div className="grid place-items-center py-24"><Spinner /></div>;
   if (!user) return <Navigate to="/login" state={{ from: loc.pathname + loc.search }} replace />;
-  if (admin && user.role !== "admin") return <Navigate to="/" replace />;
+  if (admin && user.role !== "admin") return <Navigate to="/account" replace />;
   return <Outlet />;
 }

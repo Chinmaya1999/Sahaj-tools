@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PRODUCTS, planById, formatInr } from "@ek/shared";
 import { api, errMsg } from "../lib/api";
@@ -8,21 +8,20 @@ import { download, fmtDate } from "../lib/format";
 import { Alert, Badge, Button, Card, Empty, Input, LinkButton, PageHeader, Spinner, Table, Td, Th, cx } from "../components/ui";
 import { useToast } from "../components/toast";
 
-const NAV: [string, string, string, boolean][] = [["/account", "Dashboard", "🏠", true], ["/account/orders", "Orders", "🧾", false], ["/account/library", "Software library", "📚", false], ["/account/downloads", "Download history", "⬇️", false], ["/account/settings", "Settings", "⚙️", false]];
-
+const TITLES: Record<string, [string, string]> = {
+  "/account/orders": ["Orders & receipts", "Everything you have bought, with receipts and refund status."],
+  "/account/library": ["Software library", "Your plans, included files and downloads."],
+  "/account/downloads": ["Download history", "Files you have downloaded."],
+  "/account/settings": ["Settings", "Your profile, password and data."],
+};
+/** The workspace shell supplies navigation. The dashboard has its own greeting; other pages get a title here. */
 export function AccountLayout() {
-  const { user } = useAuth();
-  const link = ({ isActive }: { isActive: boolean }) => cx("flex min-h-11 items-center gap-2.5 whitespace-nowrap rounded-xl px-3 text-sm font-medium transition-colors hover:bg-paper-2", isActive && "bg-ink text-white hover:bg-ink");
+  const { pathname } = useLocation();
+  const t = TITLES[pathname] ?? (pathname.startsWith("/account/orders/") ? ["Order", "Payment status and receipt."] : null);
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-6"><h1 className="text-3xl font-semibold sm:text-4xl">Hello, {user?.name.split(" ")[0]}</h1><p className="text-ink-2">{user?.email}</p></div>
-      <div className="grid gap-6 md:grid-cols-[210px_1fr]">
-        <nav aria-label="Account" className="flex gap-1 overflow-x-auto pb-1 md:sticky md:top-20 md:flex-col md:self-start md:overflow-visible">
-          {NAV.map(([to, t, icon, end]) => <NavLink key={to} end={end} to={to} className={link}><span aria-hidden>{icon}</span>{t}</NavLink>)}
-          <div className="mt-3 hidden rounded-2xl border border-line bg-card p-3 text-xs text-ink-2 md:block">Need help? <Link className="font-semibold text-brand underline" to="/contact">Contact support</Link></div>
-        </nav>
-        <div className="min-w-0"><Outlet /></div>
-      </div>
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+      {t && <div className="mb-6"><h1 className="text-3xl font-semibold sm:text-4xl">{t[0]}</h1><p className="text-ink-2">{t[1]}</p></div>}
+      <Outlet />
     </div>
   );
 }
@@ -39,7 +38,9 @@ function Meter({ label, value, max }: { label: string; value: number; max: numbe
 }
 
 export function Overview() {
+  const { user } = useAuth();
   const q = useQuery({ queryKey: ["dashboard"], queryFn: () => api<any>("/account/dashboard") });
+  const shop = useQuery({ queryKey: ["ms", "/dashboard"], queryFn: () => api<any>("/ministock/dashboard") });
   if (q.isLoading) return <Spinner />;
   if (q.error) return <Alert tone="bad">{errMsg(q.error)}</Alert>;
   const d = q.data; const acc = (slug: string) => d.access.find((a: any) => a.product === slug);
@@ -65,30 +66,83 @@ export function Overview() {
   const stat = (label: string, value: string, sub: string, tone = "") => <Card className="p-4"><p className="text-sm text-ink-2">{label}</p><p className={cx("mt-1 text-2xl font-semibold", tone)}>{value}</p><p className="text-xs text-ink-2">{sub}</p></Card>;
   const quick: [string, string, string][] = [["🧾", "New invoice", "/tools/invoice"], ["📦", "Update stock", "/tools/inventory"], ["📄", "Build resume", "/tools/resume"], ["🔳", "Make QR code", "/tools/qr-business"], ["🖼️", "Resize photo", "/tools/photo-tools"], ["🗂️", "Merge PDFs", "/tools/pdf-tools"]];
 
+  const hour = new Date().getHours(); const greet = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const first = user?.name.split(" ")[0] ?? "";
+  const shopData = shop.data as any;
+  for (const al of shopData?.alerts ?? []) if (al.tone !== "info") attention.push({ tone: al.tone === "bad" ? "bad" : "warn", text: al.text, to: `/tools/inventory?tab=${al.to === "people" ? "people" : al.to}`, cta: "Open" });
+  const stat2 = (label: string, value: string, sub: string, tone = "", to?: string) => {
+    const inner = <><p className="text-sm text-ink-2">{label}</p><p className={cx("mt-1 text-2xl font-semibold", tone)}>{value}</p><p className="text-xs text-ink-2">{sub}</p></>;
+    return to ? <Link to={to} className="rounded-2xl border border-line bg-card p-4 shadow-soft transition hover:border-brand">{inner}</Link> : <Card className="p-4">{inner}</Card>;
+  };
+  const statLine: Record<string, string> = {
+    invoice: `${d.usage.docsMonth} document${d.usage.docsMonth === 1 ? "" : "s"} this month`, inventory: `${d.usage.items} product${d.usage.items === 1 ? "" : "s"} tracked`,
+    resume: `${d.usage.resumes} saved`, invitation: `${d.usage.designs} design${d.usage.designs === 1 ? "" : "s"}`,
+    "qr-business": d.usage.page ? (d.usage.page.published ? "Page is live" : "Page is a draft") : "Not set up yet", "pdf-tools": "Runs in your browser", "photo-tools": "Runs in your browser",
+  };
+  const GROUPS: [string, string[]][] = [["Run my business", ["invoice", "inventory", "qr-business"]], ["Documents & creative", ["resume", "invitation", "pdf-tools", "photo-tools"]]];
+  const SHORT_NAME: Record<string, string> = { invoice: "Invoices & quotes", inventory: "Stock & sales", "qr-business": "QR & business page", resume: "Resume builder", invitation: "Invitations", "pdf-tools": "PDF tools", "photo-tools": "Photo resize" };
+  const launch = (slug: string) => {
+    const p = PRODUCTS.find((x) => x.slug === slug)!; const a = acc(slug);
+    return (
+      <Link key={slug} to={`/tools/${slug}`} className="group flex min-w-0 items-center gap-3 rounded-2xl border border-line bg-card p-4 shadow-soft transition hover:-translate-y-0.5 hover:border-brand">
+        <span aria-hidden className="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-2xl" style={{ background: `${p.accent}22` }}>{p.icon}</span>
+        <span className="min-w-0 flex-1"><span className="block truncate font-semibold">{SHORT_NAME[slug] ?? p.name}</span><span className="block truncate text-sm text-ink-2">{statLine[slug]}</span></span>
+        <span className="flex flex-col items-end gap-1"><Badge tone={a?.paid ? "brand" : "ok"}>{a?.paid ? "Paid" : "Free"}</Badge><span aria-hidden className="text-ink-2 transition group-hover:translate-x-0.5">→</span></span>
+      </Link>
+    );
+  };
+
   return (
     <div className="space-y-6">
-      <section aria-label="Quick actions" className="relative overflow-hidden rounded-3xl bg-ink p-5 text-white sm:p-6">
-        <div aria-hidden className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-brand/60 blur-3xl" />
-        <div className="relative flex flex-wrap items-center justify-between gap-3"><div><p className="text-sm text-white/75">Your plan</p><p className="font-display text-2xl font-semibold">{paidCount ? `${paidCount} tool${paidCount > 1 ? "s" : ""} on a paid plan` : "Free plan"}</p></div>{!paidCount && <LinkButton to="/pricing" className="bg-white !text-ink hover:bg-paper-2">Compare plans</LinkButton>}</div>
-        <ul className="relative mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">{quick.map(([i, t, to]) => <li key={t}><Link to={to} className="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl bg-white/10 px-2 text-center text-xs font-semibold transition hover:bg-white/20"><span aria-hidden className="text-lg">{i}</span>{t}</Link></li>)}</ul>
+      <section aria-label="Welcome" className="holo-panel holo-scan relative overflow-hidden rounded-3xl bg-ink p-5 text-white sm:p-7">
+        <div aria-hidden className="absolute -right-10 -top-16 h-56 w-56 rounded-full bg-brand/50 blur-3xl" />
+        <div className="relative">
+          <p className="text-sm text-white/75">{greet} · {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}</p>
+          <h1 className="mt-1 text-3xl font-semibold sm:text-4xl">Hello, {first}</h1>
+          <p className="mt-1 max-w-2xl text-white/80">{attention.length ? `${attention.length} thing${attention.length > 1 ? "s" : ""} need${attention.length > 1 ? "" : "s"} your attention.` : "Everything is on track."} {paidCount ? `${paidCount} tool${paidCount > 1 ? "s" : ""} on a paid plan.` : "You are on the free plan."}</p>
+          <ul className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">{quick.map(([i, t, to]) => <li key={t}><Link to={to} className="flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-xl border border-white/15 bg-white/10 px-2 text-center text-xs font-semibold transition hover:bg-white/20"><span aria-hidden className="text-xl">{i}</span>{t}</Link></li>)}</ul>
+        </div>
+      </section>
+
+      <section aria-labelledby="shop-h">
+        <div className="mb-2 flex items-center justify-between"><h2 id="shop-h" className="text-xl">Your shop today</h2><Link to="/tools/inventory" className="text-sm font-semibold text-brand-700 underline">Open shop</Link></div>
+        {d.usage.items > 0 && shopData ? (
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {stat2("Today's sales", formatInr(shopData.today.salesRevenuePaise), `${shopData.today.orders} sale${shopData.today.orders === 1 ? "" : "s"} · before tax`, "", "/tools/inventory?tab=orders")}
+            {stat2("Gross profit", formatInr(shopData.today.grossProfitPaise), "Before overheads", shopData.today.grossProfitPaise < 0 ? "text-bad" : "", "/tools/inventory?tab=money")}
+            {stat2("Customers owe you", formatInr(shopData.customerDuesPaise), shopData.overdueCount ? `${shopData.overdueCount} overdue` : "Outstanding", shopData.customerDuesPaise ? "text-warn" : "", "/tools/inventory?tab=people")}
+            {stat2("Low stock", String(shopData.lowStockCount), `${shopData.awaitingDispatch} order${shopData.awaitingDispatch === 1 ? "" : "s"} to dispatch`, shopData.lowStockCount ? "text-warn" : "", "/tools/inventory?tab=products")}
+          </div>
+        ) : (
+          <Card className="grid gap-4 p-5 md:grid-cols-[1fr_auto] md:items-center"><div><p className="font-semibold">Set up your shop in a few minutes</p><ol className="mt-2 grid gap-1 text-sm text-ink-2 sm:grid-cols-3"><li>1. Add your products</li><li>2. Make your first sale</li><li>3. See profit and who owes you</li></ol></div><LinkButton to="/tools/inventory?tab=products">Add first product</LinkButton></Card>
+        )}
       </section>
 
       <section aria-label="Summary" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stat("Waiting to be paid", formatInr(d.money.outstandingPaise), "from open invoices")}
-        {stat("Overdue", String(d.money.overdueCount), d.money.overdueCount ? formatInr(d.money.overduePaise) + " late" : "nothing late", d.money.overdueCount ? "text-bad" : "text-ok")}
-        {stat("Low stock", String(d.stock.low), `${d.usage.items} product${d.usage.items === 1 ? "" : "s"} tracked`, d.stock.low ? "text-warn" : "")}
-        {stat("Documents this month", String(d.usage.docsMonth), `${d.usage.docsTotal} created in total`)}
+        {stat2("Waiting to be paid", formatInr(d.money.outstandingPaise), "from open invoices", "", "/tools/invoice")}
+        {stat2("Overdue invoices", String(d.money.overdueCount), d.money.overdueCount ? formatInr(d.money.overduePaise) + " late" : "nothing late", d.money.overdueCount ? "text-bad" : "text-ok", "/tools/invoice")}
+        {stat2("Low stock", String(d.stock.low), `${d.usage.items} product${d.usage.items === 1 ? "" : "s"} tracked`, d.stock.low ? "text-warn" : "", "/tools/inventory?tab=products")}
+        {stat2("Documents this month", String(d.usage.docsMonth), `${d.usage.docsTotal} created in total`)}
       </section>
 
       <section aria-labelledby="att-h"><h2 id="att-h" className="mb-2 text-xl">Needs your attention</h2>
-        {attention.length ? <ul className="space-y-2">{attention.map((a, i) => <li key={i} className={cx("flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-3 text-sm", a.tone === "bad" ? "border-bad/30 bg-bad-bg text-bad" : "border-warn/30 bg-warn-bg text-warn")}><span className="font-medium">{a.text}</span><Link to={a.to} className="min-h-9 rounded-lg bg-white/70 px-3 py-1.5 text-xs font-bold text-ink hover:bg-white">{a.cta} →</Link></li>)}</ul>
+        {attention.length ? <ul className="space-y-2">{attention.map((a, i) => <li key={i} className={cx("flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-3 text-sm", a.tone === "bad" ? "border-bad/30 bg-bad-bg text-bad" : a.tone === "warn" ? "border-warn/30 bg-warn-bg text-warn" : "border-brand/30 bg-brand-50 text-brand-700")}><span>{a.text}</span><Link to={a.to} className="font-semibold underline">{a.cta}</Link></li>)}</ul>
           : <div className="rounded-xl border border-ok/20 bg-ok-bg px-4 py-3 text-sm font-medium text-ok">✓ All clear. Nothing needs your attention right now.</div>}
       </section>
 
-      {tips.length > 0 && <section aria-labelledby="tip-h"><h2 id="tip-h" className="mb-2 text-xl">Recommended for you</h2>
-        <div className="grid gap-3 md:grid-cols-2">{tips.slice(0, 2).map((t) => <Card key={t.title} className="flex flex-col justify-between gap-3 border-brand/20 bg-brand-50/50 p-4"><div><p className="font-semibold">{t.title}</p><p className="text-sm text-ink-2">{t.body}</p></div><LinkButton to={t.to} className="self-start">{t.cta}</LinkButton></Card>)}</div></section>}
+      <section aria-labelledby="tools-h"><h2 id="tools-h" className="mb-3 text-xl">All your tools</h2>
+        <div className="space-y-5">{GROUPS.map(([g, slugs]) => <div key={g}><p className="mb-2 text-xs font-bold uppercase tracking-wider text-ink-2">{g}</p><div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2 xl:grid-cols-3">{slugs.map(launch)}</div></div>)}</div>
+      </section>
 
-      <section aria-labelledby="tools-h"><h2 id="tools-h" className="mb-2 text-xl">Your tools</h2>
+      {tips.length > 0 && <section aria-labelledby="tip-h"><h2 id="tip-h" className="mb-2 text-xl">Recommended for you</h2>
+        <div className="grid gap-3 md:grid-cols-2">{tips.slice(0, 2).map((t) => <Card key={t.title} className="flex flex-col justify-between gap-3 border-brand/30 bg-brand-50/50 p-4"><div><p className="font-semibold">{t.title}</p><p className="text-sm text-ink-2">{t.body}</p></div><LinkButton to={t.to} variant="secondary" className="self-start">{t.cta}</LinkButton></Card>)}</div></section>}
+
+      <section aria-labelledby="ord-h"><div className="mb-2 flex items-center justify-between"><h2 id="ord-h" className="text-xl">Recent orders</h2><Link to="/account/orders" className="text-sm font-semibold text-brand underline">View all</Link></div>
+        {d.orders.length ? <ul className="divide-y divide-line rounded-2xl border border-line bg-card">{d.orders.map((o: any) => <li key={o.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"><Link className="font-medium underline" to={`/account/orders/${o.id}`}>{o.title}</Link><span className="flex items-center gap-3 text-ink-2">{fmtDate(o.createdAt)} · <b className="text-ink">{formatInr(o.amountPaise, { compact: false })}</b><Badge tone={tone(o.status)}>{o.status}</Badge></span></li>)}</ul> : <Empty title="No orders yet">Your purchases will show up here.</Empty>}</section>
+
+      <details className="rounded-2xl border border-line bg-card p-4"><summary className="cursor-pointer text-lg font-semibold">Plan limits and usage for each tool</summary>
+        <div className="mt-4">
+      <div>
         <div className="grid gap-4 md:grid-cols-2">
           {PRODUCTS.map((p) => {
             const a = acc(p.slug); const days = a?.expiresAt ? Math.max(0, Math.ceil((+new Date(a.expiresAt) - Date.now()) / 86400000)) : null;
@@ -111,10 +165,10 @@ export function Overview() {
               </Card>
             );
           })}
-        </div></section>
+        </div></div>
 
-      <section aria-labelledby="ord-h"><div className="mb-2 flex items-center justify-between"><h2 id="ord-h" className="text-xl">Recent orders</h2><Link to="/account/orders" className="text-sm font-semibold text-brand underline">View all</Link></div>
-        {d.orders.length ? <ul className="divide-y divide-line rounded-2xl border border-line bg-card">{d.orders.map((o: any) => <li key={o.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"><Link className="font-medium underline" to={`/account/orders/${o.id}`}>{o.title}</Link><span className="flex items-center gap-3 text-ink-2">{fmtDate(o.createdAt)} · <b className="text-ink">{formatInr(o.amountPaise, { compact: false })}</b><Badge tone={tone(o.status)}>{o.status}</Badge></span></li>)}</ul> : <Empty title="No orders yet">Your purchases will show up here.</Empty>}</section>
+        </div>
+      </details>
     </div>
   );
 }

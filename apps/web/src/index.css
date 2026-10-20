@@ -211,6 +211,14 @@ html[data-theme="light"] { color-scheme: light; }
   [role="dialog"] > * { border-top-left-radius: 1.5rem; border-top-right-radius: 1.5rem; }
 }
 /* Unlayered CSS beats Tailwind utilities, so hide the phone tab bar explicitly on larger screens. */
-@media (min-width: 768px) { .tab-bar { display: none; } }
+@media (min-width: 768px) { nav.tab-bar:not([aria-label="Quick tabs"]) { display: none; } }
 @media (max-width: 380px) { .tab-item { font-size: 0.62rem; } }
 @media print { .tab-bar { display: none !important; } }
+
+/* ---------- App workspace (signed-in) ---------- */
+.nav-active { color: var(--color-ink); background: linear-gradient(100deg, rgb(34 211 238 / 0.22), rgb(167 139 250 / 0.16)); box-shadow: inset 0 0 0 1px rgb(34 211 238 / 0.35), 0 0 18px -8px rgb(34 211 238 / 0.6); }
+:root[data-theme="light"] .nav-active { background: linear-gradient(100deg, rgb(14 116 144 / 0.16), rgb(124 58 237 / 0.1)); box-shadow: inset 0 0 0 1px rgb(14 116 144 / 0.3); }
+aside nav::-webkit-scrollbar { width: 6px; } aside nav::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 6px; }
+@media (max-width: 1023px) { .tab-bar { grid-template-columns: repeat(5, 1fr); } }
+@media (min-width: 768px) and (max-width: 1023px) { .tab-bar { display: grid; max-width: 32rem; margin-inline: auto; } }
+@media (min-width: 1024px) { .tab-bar { display: none; } }

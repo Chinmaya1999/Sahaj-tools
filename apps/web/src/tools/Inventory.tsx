@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { daysUntil, formatInr, parseCsv, rupeesToPaise, paiseToRupees } from "@ek/shared";
 import { Alert, Badge, Button, Card, Empty, Input, Select, Spinner, Table, Td, Th, cx } from "../components/ui";
@@ -19,10 +19,12 @@ import { Money } from "./ministock/Money";
 import { Insights } from "./ministock/Insights";
 
 type Tab = TabId | "dashboard" | "items" | "history" | "reports" | "import";
+const TAB_IDS: string[] = ["today", "sell", "orders", "products", "people", "buying", "money", "insights", "dashboard", "items", "history", "reports", "import"];
 const TYPES: [string, string][] = [["stock_in", "Stock in (received)"], ["sale", "Sale"], ["stock_out", "Stock out (other)"], ["return", "Customer return"], ["damage", "Damaged / expired"], ["adjustment", "Adjustment"]];
 
 export default function Inventory() {
-  const [tab, setTab] = useState<Tab>("today");
+  const [sp] = useSearchParams(); const wanted = sp.get("tab");
+  const [tab, setTab] = useState<Tab>(TAB_IDS.includes(wanted as Tab) ? (wanted as Tab) : "today");
   return (
     <div className="space-y-5">
       <div role="tablist" aria-label="Inventory sections" className="flex gap-1.5 overflow-x-auto">

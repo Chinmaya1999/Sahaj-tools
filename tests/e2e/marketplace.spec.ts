@@ -46,7 +46,7 @@ test.describe("marketing & auth", () => {
     await expect(page).toHaveURL(/\/login/);
     await register(page);
     await page.goto("/admin");
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/account"); // customers are sent to their own dashboard
     const r = await page.request.get("/api/admin/stats");
     expect(r.status()).toBe(403);
   });

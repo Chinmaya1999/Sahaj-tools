@@ -17,7 +17,7 @@ test.describe("billing & downloads", () => {
     expect(Object.keys(zip.files)).toContain("README.txt");
     await page.goto("/account/downloads");
     await expect(page.getByText("downloaded").first()).toBeVisible();
-    await page.goto("/account");
+    await page.goto("/account"); await page.getByText("Plan limits and usage for each tool").click();
     await expect(page.getByText("500").first()).toBeVisible(); // limit raised by the entitlement
   });
 
@@ -31,7 +31,7 @@ test.describe("billing & downloads", () => {
     await page.getByRole("button", { name: /^Pay / }).click();
     await page.getByRole("button", { name: "Cancel" }).click();
     await expect(page.getByRole("heading", { name: "Checkout cancelled" })).toBeVisible();
-    await page.goto("/account"); await expect(page.getByText("Max file (MB)").first()).toBeVisible();
+    await page.goto("/account"); await page.getByText("Plan limits and usage for each tool").click(); await expect(page.getByText("Max file (MB)").first()).toBeVisible();
     await expect(page.getByText("100")).toHaveCount(0);
   });
 });
@@ -254,7 +254,7 @@ test.describe("admin", () => {
     page.once("dialog", (d) => d.accept());
     await page.getByRole("button", { name: "Refund" }).click();
     await expect(page.getByRole("cell", { name: "refunded" })).toBeVisible();
-    await cust.goto("/account"); await expect(cust.getByText("Files per batch").first()).toBeVisible();
+    await cust.goto("/account"); await cust.getByText("Plan limits and usage for each tool").click(); await expect(cust.getByText("Files per batch").first()).toBeVisible();
     const lim = await cust.request.get("/api/entitlements"); const body = await lim.json();
     expect(body.access.find((a: any) => a.product === "photo-tools").limits.maxFiles).toBe(1);
     await page.getByRole("tab", { name: "Audit" }).click(); await expect(page.getByText("admin.refund").first()).toBeVisible();
