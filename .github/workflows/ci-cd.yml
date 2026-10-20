@@ -1,0 +1,150 @@
+name: CI/CD
+
+# Pull requests: test everything. Pushes to main: test, build, then deploy to production only if all checks pass.
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", "docs/**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}   # never cancel a running production deploy
+
+permissions:
+  contents: read
+
+env:
+  NS: awsmallick1999
+  FRONTEND_URL: https://sahaj.cmcloud.online
+  API_URL: https://sahaj.api.cmcloud.online
+
+jobs:
+  # ---- the four gates run in parallel, so total time is the slowest one (the browser tests) ----
+  verify:
+    name: Typecheck + unit & API tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --no-audit --no-fund
+      - name: Cache MongoDB test binary
+        uses: actions/cache@v4
+        with: { path: node_modules/.cache/mongodb-memory-server, key: mongo-bin-${{ runner.os }}-${{ hashFiles('package-lock.json') }} }
+      - run: npm run typecheck
+      - run: npm test
+
+  e2e:
+    name: Browser tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --no-audit --no-fund
+      - name: Cache MongoDB test binary
+        uses: actions/cache@v4
+        with: { path: node_modules/.cache/mongodb-memory-server, key: mongo-bin-${{ runner.os }}-${{ hashFiles('package-lock.json') }} }
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with: { path: ~/.cache/ms-playwright, key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }} }
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: playwright-report, path: playwright-report, retention-days: 7 }
+
+  security:
+    name: Dependency audit + secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Known vulnerabilities in production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Committed secrets
+        uses: gitleaks/gitleaks-action@v2
+        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+
+  build:
+    name: Build and scan images
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: meta
+        run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - name: Docker Hub login (avoids anonymous pull limits)
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with: { username: "${{ secrets.DOCKERHUB_USERNAME }}", password: "${{ secrets.DOCKERHUB_TOKEN }}" }
+      - name: Build api + web (shared layers, cached between runs)
+        uses: docker/bake-action@v6
+        env: { NS: "${{ env.NS }}", TAG: "${{ steps.meta.outputs.tag }}" }
+        with:
+          load: true
+          set: |
+            *.cache-from=type=gha,scope=sahaj
+            *.cache-to=type=gha,mode=max,scope=sahaj
+      - name: Scan the API image (fail on fixable critical vulnerabilities)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.NS }}/sahaj-api:${{ steps.meta.outputs.tag }}
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          scanners: vuln
+      - name: Publish images to Docker Hub
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          docker push "$NS/sahaj-api:${{ steps.meta.outputs.tag }}"
+          docker push "$NS/sahaj-web:${{ steps.meta.outputs.tag }}"
+          docker push "$NS/sahaj-web:latest"
+
+  deploy:
+    name: Deploy to production
+    needs: [verify, e2e, security, build]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency: { group: production, cancel-in-progress: false }
+    environment: { name: production, url: "${{ env.FRONTEND_URL }}" }
+    env:
+      TAG: ${{ needs.build.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: deploy }
+      - name: Prepare SSH (dedicated deploy key, pinned host key)
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.EC2_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          printf 'Host prod\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n  ServerAliveInterval 20\n' "${{ secrets.EC2_HOST }}" "${{ secrets.EC2_USER }}" > ~/.ssh/config
+      - name: Sync deploy config
+        run: tar -czf - -C deploy docker-compose.prod.yml deploy.sh | ssh prod sync-config
+      - name: Start new version (server pulls changed layers, waits for health, rolls back by itself on failure)
+        run: ssh prod "deploy $TAG"
+      - name: Smoke test over the public internet
+        run: |
+          for i in $(seq 1 12); do
+            if curl -fsS --max-time 10 "$API_URL/api/health" | grep -q '"db":true' \
+               && curl -fsS --max-time 10 "$FRONTEND_URL/api/health" | grep -q '"ok":true' \
+               && curl -fsS --max-time 10 "$FRONTEND_URL/" | grep -q '<div id="root">' \
+               && [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 -I "http://sahaj.cmcloud.online/")" = "308" ]; then
+              echo "live and healthy"; exit 0; fi
+            echo "waiting ($i/12)…"; sleep 5
+          done
+          echo "smoke test failed, rolling back" >&2; ssh prod rollback; exit 1
+      - name: Clean up key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
