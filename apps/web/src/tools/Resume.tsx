@@ -68,7 +68,7 @@ function Editor({ id: initialId, initial, premium, aiEnabled, onClose }: { id?: 
     const z = new JSZip(); const plain = toPlain(r);
     z.file("resume.txt", plain); z.file("cover-letter.txt", r.coverLetter || "(no cover letter written)"); z.file("resume.json", JSON.stringify(r, null, 2));
     z.file("resume.html", `<!doctype html><meta charset="utf-8"><title>${esc(r.personal.fullName)} – Resume</title><body style="font-family:Arial,sans-serif;max-width:720px;margin:24px auto"><pre style="white-space:pre-wrap;font-family:inherit">${esc(plain)}</pre></body>`);
-    z.file("README.txt", "Application package from Sahaj.\nresume.txt – plain text for online forms and ATS pasting.\nresume.html – open in a browser and print to PDF.\ncover-letter.txt – your cover letter.\nresume.json – your data, for backup.");
+    z.file("README.txt", "Application package from Oqzra.\nresume.txt – plain text for online forms and ATS pasting.\nresume.html – open in a browser and print to PDF.\ncover-letter.txt – your cover letter.\nresume.json – your data, for backup.");
     download(await z.generateAsync({ type: "blob" }), `${(r.personal.fullName || "application").replace(/\W+/g, "-")}-package.zip`);
   }
   return (

@@ -16,6 +16,8 @@ import PublicPage from "./pages/PublicPage";
 import NotFound from "./pages/NotFound";
 import ToolPage from "./tools";
 import Welcome from "./pages/Welcome";
+import Download from "./pages/Download";
+import Students from "./pages/Students";
 import { useAuth } from "./lib/auth";
 import { isApp } from "./lib/native";
 
@@ -41,6 +43,8 @@ export default function App() {
         <Route index element={<HomeOrWorkspace />} />
         <Route path="welcome" element={<Welcome />} />
         <Route path="explore" element={<Explore />} />
+        <Route path="download" element={<Download />} />
+        <Route path="students" element={<Students />} />
         <Route path="free-tools" element={<FreeTools />} />
         <Route path="pricing" element={<Pricing />} />
         <Route path="bundles" element={<Bundles />} />

@@ -1,4 +1,4 @@
-# Sahaj
+# Oqzra
 
 Seven affordable micro-tools in one marketplace – **Invoice & Quotation**, **Resume Builder**, **Inventory & Expiry**, **Regional-language (English/Odia) Invitations**, **PDF utility**, **QR + mini-business page**, **Photo resize helper** – with accounts, real payments plumbing, entitlements, secure downloads and an admin dashboard.
 

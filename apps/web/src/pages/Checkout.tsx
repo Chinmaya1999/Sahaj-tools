@@ -54,7 +54,7 @@ export default function Checkout() {
       }
       await loadRazorpay();
       const rz = new window.Razorpay!({
-        key: r.checkout.key, amount: r.checkout.amountPaise, currency: "INR", order_id: r.checkout.providerOrderId, name: "Sahaj", description: r.order.title,
+        key: r.checkout.key, amount: r.checkout.amountPaise, currency: "INR", order_id: r.checkout.providerOrderId, name: "Oqzra", description: r.order.title,
         prefill: { name: r.user.name, email: r.user.email },
         handler: async (resp: any) => { try { await verify(r.order.id, { paymentId: resp.razorpay_payment_id, signature: resp.razorpay_signature }); } catch { /* order page will show the real state */ } finish(r.order.id); },
         modal: { ondismiss: async () => { await api("/billing/cancel", { body: { orderId: r.order.id } }).catch(() => {}); setBusy(false); } },

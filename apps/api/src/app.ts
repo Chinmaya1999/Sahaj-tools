@@ -106,7 +106,8 @@ export function createApp(opts: AppOptions = {}) {
       res.type("text/plain").send(`User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /account\nDisallow: /admin\nDisallow: /checkout\n\nSitemap: ${origin}/sitemap.xml\n`);
     });
     app.get("/sitemap.xml", (_req, res) => {
-      const urls = SEO_PUBLIC_PATHS.map((p) => `  <url><loc>${origin}${p === "/" ? "" : p}</loc><priority>${p === "/" ? "1.0" : p.startsWith("/tools/") && !p.endsWith("/about") ? "0.9" : "0.6"}</priority></url>`).join("\n");
+      const lastmod = new Date().toISOString().slice(0, 10);
+      const urls = SEO_PUBLIC_PATHS.map((p) => `  <url><loc>${origin}${p === "/" ? "" : p}</loc><lastmod>${lastmod}</lastmod><changefreq>${p === "/" ? "daily" : "weekly"}</changefreq><priority>${p === "/" ? "1.0" : p.startsWith("/tools/") && !p.endsWith("/about") ? "0.9" : "0.6"}</priority></url>`).join("\n");
       res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
     });
     // Inject per-page SEO tags into the HTML so crawlers and link previews see them without running JavaScript.

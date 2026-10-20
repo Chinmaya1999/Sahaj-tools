@@ -8,7 +8,7 @@ export async function buildAsset(id: string): Promise<{ filename: string; conten
   if (id !== "inventory-starter-kit") return null;
   const zip = new JSZip();
   zip.file("README.txt", [
-    "Sahaj – Inventory Starter Kit",
+    "Oqzra – Inventory Starter Kit",
     "====================================",
     "",
     "What is inside",

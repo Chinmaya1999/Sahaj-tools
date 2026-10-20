@@ -14,7 +14,23 @@ export interface SeoMeta {
 }
 
 const SITE = BRAND.name;
-export const SEO_DEFAULT_IMAGE = "/icon-512.png";
+export const SEO_DEFAULT_IMAGE = "/og-image.png";
+/** Student-focused questions; shown on /students and emitted as FAQPage structured data so they can appear as rich answers in search. */
+export const STUDENT_FAQ: { q: string; a: string }[] = [
+  { q: "How do I resize a photo to 20 KB or 50 KB for an application form?", a: "Open the Oqzra photo resizer, choose a preset (for example passport photo or signature), set the size limit in KB and download. It runs in your browser, so your photo is never uploaded." },
+  { q: "How can I make a free ATS-friendly resume as a fresher?", a: 'Use the Oqzra resume builder: fill in your details, watch the live preview, paste a job description to check missing keywords and download a clean resume. Students and freshers can start free.' },
+  { q: "How do I merge several PDFs into one file for free?", a: "Open Oqzra PDF tools, add your files, drag to reorder and merge. You can also split, rotate and convert images to PDF. Files stay on your device." },
+  { q: "Can I convert JPG photos to a single PDF for an assignment?", a: "Yes. In Oqzra PDF tools choose Images to PDF, add your pictures in order and download one PDF." },
+  { q: "Is Oqzra free for students?", a: "Every Oqzra tool has a free plan. The Student bundle adds the resume, PDF and photo tools at a low one-time price with no auto-renewal." },
+];
+
+/** Where each app can be downloaded; the website's /download page and its structured data both read this. */
+export const APP_DOWNLOADS = {
+  repo: "https://github.com/Chinmaya1999/Sahaj-tools/releases/latest/download",
+  android: "Oqzra.apk",
+  windows: "Oqzra-Setup.exe",
+  ios: "Oqzra-iOS.ipa",
+} as const;
 
 const PRODUCT_SEO: Record<ProductSlug, { title: string; description: string; keywords: string[] }> = {
   invoice: {
@@ -54,22 +70,22 @@ const PRODUCT_SEO: Record<ProductSlug, { title: string; description: string; key
   },
 };
 
-const ALL_TOOL_KEYWORDS = [SITE, "online tools", "small business tools", "free online tools India"];
+const ALL_TOOL_KEYWORDS = [SITE, "Oqzra tools", "online tools", "small business tools", "free online tools India"];
 
 const STATIC_SEO: Record<string, SeoMeta> = {
   "/": {
-    title: `${SITE} – Free Invoice, Resume, PDF, QR Code & Photo Resize Tools`,
-    description: "Seven small, affordable online tools: invoice & quotation generator, ATS resume builder, inventory manager, Odia invitation maker, PDF tools, QR codes and photo resizer. Free to start, no auto-renewal.",
-    keywords: ["invoice generator", "resume builder", "PDF tools", "QR code generator", "photo resizer", "inventory manager", "invitation maker", "free online tools", ...ALL_TOOL_KEYWORDS],
+    title: `${SITE} – Free Invoice Generator, Resume Builder, PDF, QR Code & Photo Resizer Tools`,
+    description: "Oqzra: simple tools for everyday life. Seven small, affordable online tools: invoice & quotation generator, ATS resume builder, inventory manager, Odia invitation maker, PDF tools, QR codes and photo resizer. Free to start, no auto-renewal.",
+    keywords: ["Oqzra", "Oqzra tools", "Oqzra app", "invoice generator", "resume builder", "PDF tools", "QR code generator", "photo resizer", "inventory manager", "invitation maker", "free online tools", "tools for students", ...ALL_TOOL_KEYWORDS],
   },
   "/explore": {
     title: `All Tools – Invoice, Resume, Inventory, PDF, QR, Photo | ${SITE}`,
-    description: "Browse every Sahaj tool: invoices, resumes, inventory, invitations, PDF utilities, QR codes and photo resizing. Pick one and start free.",
+    description: "Browse every Oqzra tool: invoices, resumes, inventory, invitations, PDF utilities, QR codes and photo resizing. Pick one and start free.",
     keywords: ["online tools", "business tools", "document tools", "student tools", ...ALL_TOOL_KEYWORDS],
   },
   "/free-tools": {
     title: `Free Online Tools – No Signup Needed to Try | ${SITE}`,
-    description: "Try Sahaj's free tools: merge PDFs, resize photos, make QR codes, build a resume and more. Free plan on every tool.",
+    description: "Try Oqzra's free tools: merge PDFs, resize photos, make QR codes, build a resume and more. Free plan on every tool.",
     keywords: ["free online tools", "free PDF tools", "free QR generator", "free photo resizer", "free resume builder"],
   },
   "/pricing": {
@@ -82,15 +98,31 @@ const STATIC_SEO: Record<string, SeoMeta> = {
     description: "Save with the Student bundle (resume, PDF, photo tools) and the Small Shop bundle (invoice and inventory).",
     keywords: ["student bundle", "small shop software bundle", "resume and PDF tools"],
   },
+  "/students": {
+    title: `Free Tools for Students – Resume Builder, Photo Resizer, PDF Merge | ${SITE}`,
+    description: "Student toolkit: build an ATS-friendly resume, resize photo and signature to 20KB or 50KB for exam forms, merge PDFs, convert JPG to PDF and make QR codes. Free to start, works on mobile.",
+    keywords: ["tools for students", "free tools for students", "student resume builder", "resume maker for freshers", "photo resize for exam form", "resize photo to 20kb", "signature resize 10kb", "merge PDF free", "JPG to PDF", "assignment PDF tools", "online form photo size", "Oqzra students"],
+    jsonLd: [{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: STUDENT_FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }],
+  },
+  "/download": {
+    title: `Download the ${SITE} App – Android APK, Windows & iPhone`,
+    description: "Download the Oqzra app for Android (APK), Windows or iPhone and iPad. Invoices, stock, resume, PDF, QR and photo tools in one app with barcode scanning. Free to install.",
+    keywords: ["Oqzra app", "Oqzra apk", "Oqzra download", "Oqzra Android app", "Oqzra Windows app", "invoice app download", "billing app for small shop", "stock manager app", "download invoice maker app"],
+    jsonLd: [{
+      "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Oqzra", applicationCategory: "BusinessApplication",
+      operatingSystem: "Android, Windows, iOS", url: "/download", description: "Invoices, stock, resume, PDF, QR and photo tools in one app.",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+    }],
+  },
   "/help": {
     title: `Help & FAQ | ${SITE}`,
-    description: "Answers about plans, payments, downloads, privacy and how each Sahaj tool works.",
-    keywords: ["Sahaj help", "Sahaj FAQ"],
+    description: "Answers about plans, payments, downloads, privacy and how each Oqzra tool works.",
+    keywords: ["Oqzra help", "Oqzra FAQ", "Oqzra support"],
   },
-  "/contact": { title: `Contact Us | ${SITE}`, description: "Questions or feedback? Contact the Sahaj team.", keywords: ["contact Sahaj"] },
-  "/terms": { title: `Terms of Service | ${SITE}`, description: "The terms for using Sahaj.", keywords: [] },
-  "/privacy": { title: `Privacy Policy | ${SITE}`, description: "How Sahaj handles your data. Many tools run entirely in your browser.", keywords: [] },
-  "/refunds": { title: `Refund Policy | ${SITE}`, description: "Sahaj's refund and cancellation policy.", keywords: [] },
+  "/contact": { title: `Contact Us | ${SITE}`, description: "Questions or feedback? Contact the Oqzra team.", keywords: ["contact Oqzra"] },
+  "/terms": { title: `Terms of Service | ${SITE}`, description: "The terms for using Oqzra.", keywords: [] },
+  "/privacy": { title: `Privacy Policy | ${SITE}`, description: "How Oqzra handles your data. Many tools run entirely in your browser.", keywords: [] },
+  "/refunds": { title: `Refund Policy | ${SITE}`, description: "Oqzra's refund and cancellation policy.", keywords: [] },
 };
 
 const PRIVATE_PREFIXES = ["/welcome", "/account", "/admin", "/checkout", "/login", "/register", "/forgot-password", "/reset-password", "/p/"];
@@ -123,8 +155,8 @@ export function seoFor(pathname: string): SeoMeta {
 
 /** Site-wide structured data: who we are and what the site offers. */
 export const siteJsonLd = (origin: string): Record<string, unknown>[] => [
-  { "@context": "https://schema.org", "@type": "Organization", name: SITE, url: origin, logo: `${origin}/icon-512.png` },
-  { "@context": "https://schema.org", "@type": "WebSite", name: SITE, url: origin, description: BRAND.tagline, inLanguage: ["en", "or"] },
+  { "@context": "https://schema.org", "@type": "Organization", name: SITE, url: origin, logo: `${origin}/icon-512.png`, description: BRAND.tagline, alternateName: ["Oqzra Tools", "Oqzra App"] },
+  { "@context": "https://schema.org", "@type": "WebSite", name: SITE, alternateName: "Oqzra Tools", url: origin, description: BRAND.tagline, inLanguage: ["en", "or"] },
 ];
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -154,8 +186,11 @@ export function renderSeoHead(pathname: string, origin: string): string {
     `<meta data-seo property="og:description" content="${esc(m.description)}" />`,
     `<meta data-seo property="og:url" content="${esc(url)}" />`,
     `<meta data-seo property="og:image" content="${esc(img)}" />`,
+    `<meta data-seo property="og:image:width" content="1200" />`,
+    `<meta data-seo property="og:image:height" content="630" />`,
+    `<meta data-seo property="og:image:alt" content="${SITE} logo" />`,
     `<meta data-seo property="og:locale" content="en_IN" />`,
-    `<meta data-seo name="twitter:card" content="summary" />`,
+    `<meta data-seo name="twitter:card" content="summary_large_image" />`,
     `<meta data-seo name="twitter:title" content="${esc(m.title)}" />`,
     `<meta data-seo name="twitter:description" content="${esc(m.description)}" />`,
     `<meta data-seo name="twitter:image" content="${esc(img)}" />`,

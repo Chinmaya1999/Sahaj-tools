@@ -44,3 +44,14 @@ test.describe("app welcome page and phone safe areas", () => {
     await ctx.close();
   });
 });
+
+test("brand: Oqzra name, icons, manifest and search tags on public pages", async ({ page, request }) => {
+  await page.goto("/");
+  await expect(page).toHaveTitle(/Oqzra/);
+  for (const href of ["/favicon.ico", "/favicon-32.png", "/apple-touch-icon.png", "/manifest.webmanifest", "/og-image.png", "/icon-512.png"]) {
+    expect((await request.get(href)).status(), href).toBe(200);
+  }
+  await page.goto("/download");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Oqzra");
+  await expect(page.locator("a[data-download=android]")).toHaveAttribute("href", /Oqzra\.apk$/);
+});

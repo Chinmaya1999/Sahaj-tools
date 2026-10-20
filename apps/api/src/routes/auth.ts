@@ -56,7 +56,7 @@ authRouter.post("/forgot", wrap(async (req, res) => {
     const token = randomToken(32);
     await PasswordReset.create({ tokenHash: sha256(token), user: user._id, expiresAt: new Date(Date.now() + 30 * 60_000) });
     const link = `${env.WEB_ORIGIN}/reset-password?token=${token}`;
-    await sendMail(user.email, "Reset your Sahaj password", `Use this link within 30 minutes to choose a new password:\n\n${link}\n\nIf you did not request this, ignore this email.`);
+    await sendMail(user.email, "Reset your Oqzra password", `Use this link within 30 minutes to choose a new password:\n\n${link}\n\nIf you did not request this, ignore this email.`);
     await audit(req, "auth.reset_requested", user.id, undefined, user._id);
   }
   // Same response either way – do not reveal which emails are registered.

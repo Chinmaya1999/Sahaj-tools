@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { business, signup } from "./helpers.js";
 
 /**
- * "Sahaj Kids Wear": a realistic demo shop run through the real API.
+ * "Oqzra Kids Wear": a realistic demo shop run through the real API.
  * Every expected figure is computed here with plain arithmetic (not by the app's own code),
  * so a mismatch means the app's accounting is wrong.
  */
@@ -29,7 +29,7 @@ const P = {
 };
 const today = () => new Date(Date.now() + 5.5 * 3600_000).toISOString().slice(0, 10);
 
-describe("demo business: a full day at Sahaj Kids Wear", () => {
+describe("demo business: a full day at Oqzra Kids Wear", () => {
   it("reconciles stock, sales, payments, returns, purchasing, profit, dues and cash to the paisa", async () => {
     const { c } = await signup("Demo Owner");
     const post = async (url: string, body?: unknown, status = 201) => { const r = await c.post(url).send(body ?? {}); expect(r.status, `${url} ${JSON.stringify(r.body).slice(0, 200)}`).toBe(status); return r.body; };

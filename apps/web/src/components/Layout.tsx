@@ -9,7 +9,7 @@ import { AppShell } from "./AppShell";
 import { Logo } from "./Logo";
 import { isApp } from "../lib/native";
 
-const links = [["/explore", "Tools"], ["/free-tools", "Free tools"], ["/pricing", "Pricing"], ["/bundles", "Bundles"], ["/help", "Help"]] as const;
+const links = [["/explore", "Tools"], ["/free-tools", "Free tools"], ["/pricing", "Pricing"], ["/bundles", "Bundles"], ["/students", "Students"], ["/download", "Get the app"], ["/help", "Help"]] as const;
 
 export { Logo, LogoMark } from "./Logo";
 
@@ -104,7 +104,6 @@ function AppFooter() {
   );
 }
 
-const APPS_URL = "https://github.com/Chinmaya1999/Sahaj-tools/releases/latest";
 function Footer() {
   const col = (title: string, items: [string, string][]) => (
     <div><h2 className="font-sans text-sm font-semibold">{title}</h2><ul className="mt-3 space-y-2 text-sm text-ink-2">{items.map(([to, t]) => <li key={to}><Link className="hover:text-ink hover:underline" to={to}>{t}</Link></li>)}</ul></div>
@@ -114,9 +113,9 @@ function Footer() {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 md:grid-cols-4">
         <div><Logo /><p className="mt-3 max-w-xs text-sm text-ink-2">{BRAND.tagline}</p></div>
         {col("Tools", [["/tools/invoice", "Invoices"], ["/tools/resume", "Resume builder"], ["/tools/inventory", "Inventory"], ["/tools/pdf-tools", "PDF tools"], ["/tools/photo-tools", "Photo resize"]])}
-        {col("Support", [["/bundles", "Bundles"], ["/help", "Help centre & FAQ"], ["/contact", "Contact support"], ["/pricing", "Pricing"]])}
+        {col("Support", [["/bundles", "Bundles"], ["/help", "Help centre & FAQ"], ["/contact", "Contact support"], ["/pricing", "Pricing"], ["/students", "Tools for students"], ["/download", "Download the app"]])}
         {col("Legal", [["/terms", "Terms of service"], ["/privacy", "Privacy policy"], ["/refunds", "Refund & cancellation"]])}
-        <div className="sm:col-span-2 md:col-span-4"><h2 className="font-sans text-sm font-semibold">Get the apps</h2><p className="mt-2 flex flex-wrap gap-2 text-sm">{["Android", "Windows", "iPhone & iPad"].map((n) => <a key={n} href={APPS_URL} target="_blank" rel="noreferrer" className="rounded-full border border-line px-4 py-2 text-ink-2 hover:border-brand hover:text-ink">{n}</a>)}</p></div>
+        <div className="sm:col-span-2 md:col-span-4"><h2 className="font-sans text-sm font-semibold">Get the apps</h2><p className="mt-2 flex flex-wrap gap-2 text-sm">{["Android", "Windows", "iPhone & iPad"].map((n) => <Link key={n} to="/download" className="rounded-full border border-line px-4 py-2 text-ink-2 hover:border-brand hover:text-ink">{n}</Link>)}</p></div>
       </div>
       <p className="border-t border-line py-4 text-center text-xs text-ink-2">© {new Date().getFullYear()} {BRAND.name}. Prices in INR.</p>
     </footer>

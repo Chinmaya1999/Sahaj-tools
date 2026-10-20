@@ -173,7 +173,7 @@ export function Overview() {
     </div>
   );
 }
-const LABELS: Record<string, string> = { docsPerMonth: "Documents / month", maxResumes: "Saved resumes", premiumTemplates: "Premium templates", maxItems: "Products", clean: "Clean downloads", maxFileMb: "Max file (MB)", maxFiles: "Files per batch", hostedPages: "Hosted pages", poster: "Poster designs", reports: "Sales & profit reports", removeBranding: "Remove Sahaj footer" };
+const LABELS: Record<string, string> = { docsPerMonth: "Documents / month", maxResumes: "Saved resumes", premiumTemplates: "Premium templates", maxItems: "Products", clean: "Clean downloads", maxFileMb: "Max file (MB)", maxFiles: "Files per batch", hostedPages: "Hosted pages", poster: "Poster designs", reports: "Sales & profit reports", removeBranding: "Remove Oqzra footer" };
 const label = (k: string) => LABELS[k] ?? k;
 
 const tone = (s: string) => ({ paid: "ok", pending: "warn", failed: "bad", cancelled: "neutral", refunded: "neutral", disputed: "bad" } as const)[s as "paid"] ?? "neutral";
@@ -195,7 +195,7 @@ export function Orders() {
 }
 function printReceipt(o: any) {
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
-  const html = `<title>Receipt ${esc(o.receiptNo)}</title><body style="font-family:sans-serif;max-width:520px;margin:40px auto"><h1>Sahaj receipt</h1><p>Receipt: <b>${esc(o.receiptNo)}</b><br>Date: ${fmtDate(o.paidAt)}<br>Order: ${esc(o.id)}</p><table style="width:100%;border-collapse:collapse"><tr><td>${esc(o.title)}</td><td style="text-align:right">${esc(formatInr(o.amountPaise, { compact: false }))}</td></tr></table><p>Status: ${esc(o.status)}. Paid via ${esc(o.provider)}.</p><p style="color:#666;font-size:12px">This is a payment receipt, not a tax invoice.</p></body>`;
+  const html = `<title>Receipt ${esc(o.receiptNo)}</title><body style="font-family:sans-serif;max-width:520px;margin:40px auto"><h1>Oqzra receipt</h1><p>Receipt: <b>${esc(o.receiptNo)}</b><br>Date: ${fmtDate(o.paidAt)}<br>Order: ${esc(o.id)}</p><table style="width:100%;border-collapse:collapse"><tr><td>${esc(o.title)}</td><td style="text-align:right">${esc(formatInr(o.amountPaise, { compact: false }))}</td></tr></table><p>Status: ${esc(o.status)}. Paid via ${esc(o.provider)}.</p><p style="color:#666;font-size:12px">This is a payment receipt, not a tax invoice.</p></body>`;
   // The Android app prints through the system print service (a new browser window does not exist there).
   if (isMobileApp()) { void printHtmlNative(html, `Receipt ${o.receiptNo}`); return; }
   const w = window.open("", "_blank", "width=640,height=800"); if (!w) return;

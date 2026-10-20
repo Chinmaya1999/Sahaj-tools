@@ -11,7 +11,7 @@ function watch(page: Page) {
 
 test("every public page and tool loads with no console errors or failed requests", async ({ page }) => {
   const problems = watch(page);
-  for (const p of ["/", "/explore", "/free-tools", "/pricing", "/bundles", "/help", "/contact", "/terms", "/privacy", "/refunds", "/login", "/register", "/forgot-password",
+  for (const p of ["/", "/explore", "/free-tools", "/pricing", "/bundles", "/students", "/download", "/help", "/contact", "/terms", "/privacy", "/refunds", "/login", "/register", "/forgot-password",
     ...["invoice", "resume", "inventory", "invitation", "pdf-tools", "qr-business", "photo-tools"].flatMap((s) => [`/tools/${s}/about`, `/tools/${s}`])]) {
     await page.goto(p); await page.waitForLoadState("networkidle");
   }

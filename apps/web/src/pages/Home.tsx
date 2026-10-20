@@ -87,7 +87,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-14" aria-labelledby="video-h">
-        <Reveal><h2 id="video-h" className="mb-6 text-3xl font-semibold sm:text-4xl">A day with Sahaj</h2><Walkthrough /></Reveal>
+        <Reveal><h2 id="video-h" className="mb-6 text-3xl font-semibold sm:text-4xl">A day with Oqzra</h2><Walkthrough /></Reveal>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-6" aria-labelledby="products-h">

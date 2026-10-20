@@ -78,7 +78,7 @@ test.describe("marketing & auth", () => {
 });
 
 test.describe("accessibility", () => {
-  for (const path of ["/", "/pricing", "/explore", "/login", "/register", "/help", "/tools/pdf-tools", "/tools/photo-tools", "/tools/qr-business", "/tools/invitation"]) {
+  for (const path of ["/", "/pricing", "/explore", "/download", "/students", "/login", "/register", "/help", "/tools/pdf-tools", "/tools/photo-tools", "/tools/qr-business", "/tools/invitation"]) {
     test(`no serious axe violations on ${path}`, async ({ page }) => {
       await page.goto(path); await page.waitForLoadState("networkidle");
       const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();

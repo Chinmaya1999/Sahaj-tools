@@ -1,5 +1,5 @@
 /**
- * Bridge to the Sahaj apps. The Android and iOS apps (Capacitor) and the Windows app (Electron) load this same website
+ * Bridge to the Oqzra apps. The Android and iOS apps (Capacitor) and the Windows app (Electron) load this same website
  * and expose native abilities to it. On the plain web every function here is a harmless no-op, so the website works
  * identically in a browser. No native package is bundled into the website; the app injects `window.Capacitor` itself.
  */
@@ -28,7 +28,7 @@ export function initNative(theme: "dark" | "light") {
   root.classList.add("app", `app-${appPlatform()}`);
   setSystemBars(theme);
   // Android's WebView has no print dialog of its own. Route print buttons to the native print service instead.
-  if (isMobileApp() && plugin("SahajNative")?.print) window.print = () => { void plugin("SahajNative")!.print({ name: document.title || "Sahaj" }); };
+  if (isMobileApp() && plugin("SahajNative")?.print) window.print = () => { void plugin("SahajNative")!.print({ name: document.title || "Oqzra" }); };
   installBackButton();
   // Everything has rendered: let the app's animated splash finish and fade out (the app also dismisses it itself when the page has loaded).
   requestAnimationFrame(() => { void plugin("SahajNative")?.hideSplash?.(); void plugin("SplashScreen")?.hide?.({ fadeOutDuration: 200 }); });
@@ -130,7 +130,7 @@ export async function saveFileNative(blob: Blob, filename: string): Promise<bool
 }
 
 /** Native share sheet for text (receipts, order summaries). Falls back to the Web Share API, then returns false. */
-export async function shareText(text: string, title = "Sahaj"): Promise<boolean> {
+export async function shareText(text: string, title = "Oqzra"): Promise<boolean> {
   const share = plugin("Share");
   if (share) { await share.share({ title, text, dialogTitle: "Share" }); return true; }
   if (typeof navigator !== "undefined" && "share" in navigator) { await navigator.share({ title, text }); return true; }

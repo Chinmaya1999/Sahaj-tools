@@ -4,8 +4,8 @@
  * Every price here is a "pricing experiment" – see docs/pricing.md.
  */
 export const BRAND = {
-  name: "Sahaj",
-  tagline: "Small tools. Real solutions. Better everyday life.",
+  name: "Oqzra",
+  tagline: "Simple tools for everyday life.",
   supportEmail: "support@sahaj.example",
 };
 
@@ -96,7 +96,7 @@ export interface Plan {
 export const PLANS: Plan[] = [
   { id: "invoice-free", product: "invoice", name: "Free", kind: "free", pricePaise: 0, blurb: "2 documents per calendar month, Classic template.", billing: "Free", limits: { docsPerMonth: 2, premiumTemplates: false, removeBranding: false } },
   { id: "invoice-starter", product: "invoice", name: "Starter pack", kind: "credits", pricePaise: 2900, credits: 10, blurb: "10 extra documents plus Modern and Minimal templates. Credits do not expire.", billing: "One-time payment", limits: { docsPerMonth: 2, premiumTemplates: true, removeBranding: false } },
-  { id: "invoice-pro", product: "invoice", name: "Pro", kind: "period", pricePaise: 9900, periodDays: 30, blurb: "Unlimited documents, all templates and no Sahaj footer on your PDFs, for 30 days.", billing: "Per 30 days, no automatic renewal", limits: { docsPerMonth: null, premiumTemplates: true, removeBranding: true } },
+  { id: "invoice-pro", product: "invoice", name: "Pro", kind: "period", pricePaise: 9900, periodDays: 30, blurb: "Unlimited documents, all templates and no Oqzra footer on your PDFs, for 30 days.", billing: "Per 30 days, no automatic renewal", limits: { docsPerMonth: null, premiumTemplates: true, removeBranding: true } },
 
   { id: "resume-free", product: "resume", name: "Free", kind: "free", pricePaise: 0, blurb: "Standard template, 2 saved resumes.", billing: "Free", limits: { maxResumes: 2, premiumTemplates: false } },
   { id: "resume-premium", product: "resume", name: "Premium templates & bundle", kind: "one_time", pricePaise: 7900, blurb: "All templates, unlimited versions, application package export.", billing: "One-time payment", limits: { maxResumes: null, premiumTemplates: true } },

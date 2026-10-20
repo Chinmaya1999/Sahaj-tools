@@ -67,6 +67,6 @@ export function drawInvitation(canvas: HTMLCanvasElement, d: InvitationInput, bg
   if (y > h - 100 * k) { ctx.font = `600 ${26 * k}px ${bodyFont("en")}`; ctx.fillStyle = "#b42318"; ctx.textAlign = "center"; ctx.fillText("Text is too long for this page – shorten it", w / 2, h - 70 * k); }
   if (watermark) {
     ctx.save(); ctx.translate(w / 2, h / 2); ctx.rotate(-Math.PI / 6); ctx.font = `700 ${90 * k}px "Inter", sans-serif`; ctx.textAlign = "center"; ctx.fillStyle = "rgba(0,0,0,0.12)";
-    ctx.fillText("Sahaj · free preview", 0, 0); ctx.fillText("Sahaj · free preview", 0, 220 * k); ctx.fillText("Sahaj · free preview", 0, -220 * k); ctx.restore();
+    ctx.fillText("Oqzra · free preview", 0, 0); ctx.fillText("Oqzra · free preview", 0, 220 * k); ctx.fillText("Oqzra · free preview", 0, -220 * k); ctx.restore();
   }
 }

@@ -28,7 +28,7 @@ const schema = z.object({
   AI_DAILY_USER_LIMIT: z.coerce.number().default(15),
   AI_DAILY_GLOBAL_LIMIT: z.coerce.number().default(300),
   SMTP_URL: z.string().optional(),
-  MAIL_FROM: z.string().default("Sahaj <no-reply@everydaykit.example>"),
+  MAIL_FROM: z.string().default("Oqzra <no-reply@everydaykit.example>"),
   ADMIN_EMAIL: z.string().optional(),
   ADMIN_PASSWORD: z.string().optional(),
   DOWNLOAD_LINK_SECONDS: z.coerce.number().default(300),

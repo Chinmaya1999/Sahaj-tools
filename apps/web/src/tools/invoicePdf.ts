@@ -107,6 +107,6 @@ export async function buildInvoicePdf(doc: DocView, biz: BizView, opts: { brandi
   tot("Subtotal", money(doc.subtotalPaise)); if (doc.discountPaise) tot("Discount", `- ${money(doc.discountPaise)}`); tot("Tax", money(doc.taxPaise)); tot("Total", money(doc.totalPaise), true);
   if (doc.kind === "invoice") { tot("Paid", money(doc.paidPaise)); tot("Balance due", money(doc.totalPaise - doc.paidPaise), true); }
   if (doc.notes) { y -= 12; drawMixed(page, "Notes", M, y, 9, bold, grey); y -= 12; for (const w of wrapText(doc.notes, 9, W - 2 * M, regular)) { if (y < 50) { page = pdf.addPage([W, H]); y = H - M; } drawMixed(page, w, M, y, 9, regular); y -= 12; } }
-  pdf.getPages().forEach((p, i, all) => drawMixed(p, `Page ${i + 1} of ${all.length}${opts.branding === false ? "" : " · generated with Sahaj"}`, M, 24, 7.5, regular, grey));
+  pdf.getPages().forEach((p, i, all) => drawMixed(p, `Page ${i + 1} of ${all.length}${opts.branding === false ? "" : " · generated with Oqzra"}`, M, 24, 7.5, regular, grey));
   return pdf.save();
 }

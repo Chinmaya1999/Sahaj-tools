@@ -131,3 +131,16 @@ describe("ministock calcs", () => {
     expect(adjustSchema.safeParse({ itemId: "a".repeat(24), mode: "remove", quantity: 0, reason: "loss" }).success).toBe(false);
   });
 });
+
+describe("search metadata (Oqzra)", () => {
+  it("uses the Oqzra brand and indexes the student and download pages", async () => {
+    const { seoFor, renderSeoHead, SEO_PUBLIC_PATHS } = await import("./seo");
+    expect(SEO_PUBLIC_PATHS).toEqual(expect.arrayContaining(["/students", "/download"]));
+    const home = renderSeoHead("/", "https://example.test");
+    expect(home).toContain("Oqzra"); expect(home).not.toMatch(/Sahaj/); expect(home).toContain("summary_large_image"); expect(home).toContain("/og-image.png");
+    expect(renderSeoHead("/students", "https://example.test")).toContain("FAQPage");
+    expect(renderSeoHead("/download", "https://example.test")).toContain("SoftwareApplication");
+    expect(seoFor("/students").noindex).toBeUndefined();
+    expect(seoFor("/students").keywords).toEqual(expect.arrayContaining(["resize photo to 20kb", "free tools for students"]));
+  });
+});

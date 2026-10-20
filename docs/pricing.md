@@ -20,6 +20,6 @@ All prices are **experiments** (per the brief) and live in `packages/shared/src/
 Rules: "30 days"/"1 year" plans do **not** auto-renew. Credits are consumed atomically. Prices shown on checkout are final amounts; no promo codes exist (none were configured). Hosted pages go offline when the hosting plan expires.
 
 ## Paid perks (what makes people upgrade)
-- **Invoice:** Starter/Pro unlock Modern + Minimal templates; Pro also removes the "generated with Sahaj" footer from PDFs. Free users still get the money dashboard (waiting to be paid, overdue, billed this month) and WhatsApp reminders.
+- **Invoice:** Starter/Pro unlock Modern + Minimal templates; Pro also removes the "generated with Oqzra" footer from PDFs. Free users still get the money dashboard (waiting to be paid, overdue, billed this month) and WhatsApp reminders.
 - **Inventory:** Pro/Business unlock Sales & profit reports (top sellers, unsold stock, stock value by category; profit is estimated from current prices) and the Starter Kit download.
 - **Promo codes:** created in Admin → Promo codes (1–90% off, optional max uses/expiry). Applied by the server at checkout; price never below ₹1; use counted when payment is confirmed.
