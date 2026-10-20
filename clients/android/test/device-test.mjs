@@ -2,6 +2,7 @@
 //   SAHAJ_DEBUG=1 SAHAJ_URL=http://10.0.2.2:5174 npx cap sync android && (cd android && ./gradlew assembleDebug)   # debug APK -> local test server
 //   adb install -r android/app/build/outputs/apk/debug/app-debug.apk && node test/device-test.mjs
 import { writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { ADB, adb, sh, sleep, launchApp } from "./cdp.mjs";
 
@@ -23,7 +24,21 @@ const topActivity = () => sh("dumpsys activity activities | grep -i 'ResumedActi
 async function waitTop(re, what) { let t = ""; for (let i = 0; i < 24; i++) { t = topActivity(); if (re.test(t)) return t; await sleep(500); } throw new Error(`${what} did not appear: ${t.trim()}`); }
 const back = async () => { sh("input keyevent 4"); await sleep(900); };
 
-let page = await launchApp(APP);
+// Cold-start the app and grab frames as fast as possible, so we can see the launch animation itself.
+async function captureLaunchFrames(count = 8) {
+  sh(`am force-stop ${APP}`); await sleep(700);
+  // Start the app and take screenshots back-to-back on the device itself (no per-frame transfer, so it is fast), then pull them.
+  sh(`am start -n ${APP}/.MainActivity >/dev/null; for i in $(seq 1 ${count}); do screencap -p /sdcard/lf$i.png; done`);
+  const frames = [];
+  for (let i = 1; i <= count; i++) {
+    const png = execFileSync(ADB, ["exec-out", "cat", `/sdcard/lf${i}.png`], { maxBuffer: 50e6 });
+    frames.push({ hash: createHash("sha1").update(png).digest("hex"), png });
+  }
+  sh("rm -f /sdcard/lf*.png");
+  return frames;
+}
+const launchFrames = await captureLaunchFrames();
+let page = await launchApp(APP, { restart: false });
 const email = `device${Date.now()}@example.com`, PW = "Dev1ce-test-pass-1";
 const jsErrors = () => page.errors.filter((e) => !/favicon|404|\.map/.test(e));
 const api = (path, body, method = "POST") => page.eval(`fetch(${JSON.stringify(path)}, { method: ${JSON.stringify(method)}, credentials: "include", headers: { "Content-Type": "application/json", "X-Requested-With": "ek" }, body: JSON.stringify(${JSON.stringify(body)}) }).then(async (r) => ({ status: r.status, body: await r.json().catch(() => ({})) }))`);
@@ -34,11 +49,21 @@ await check("app opens on the sign-in screen with no marketing navigation", asyn
   screenshot("android-login");
   return await page.url();
 });
+await check("launch animation plays: the splash changes frame to frame, then the app appears", async () => {
+  launchFrames.forEach((f, i) => writeFileSync(`${SHOTS}/launch-${String(i).padStart(2, "0")}.png`, f.png));
+  const distinct = new Set(launchFrames.map((f) => f.hash)).size;
+  if (launchFrames.length < 6) throw new Error("only captured " + launchFrames.length + " frames");
+  if (distinct < 4) throw new Error(`only ${distinct} different frames out of ${launchFrames.length}: the splash is not animating`);
+  return `${distinct} distinct frames out of ${launchFrames.length}`;
+});
+await check("the splash dismisses itself once the page is ready", async () => {
+  await page.waitFor(`window.Capacitor.Plugins.SahajNative.splashState().then((s) => !s.visible)`, "the splash to finish", 15_000);
+});
 await check("native bridge is present with every plugin", async () => {
-  const r = await page.eval(`({ native: window.Capacitor?.isNativePlatform?.(), platform: window.Capacitor?.getPlatform?.(), cls: document.documentElement.className, ua: navigator.userAgent.includes("SahajApp"), plugins: ["BarcodeScanner","Share","Filesystem","StatusBar","SplashScreen","Haptics","SahajNative","App","Network","Keyboard"].filter((p) => !!window.Capacitor?.Plugins?.[p]) })`);
+  const r = await page.eval(`({ native: window.Capacitor?.isNativePlatform?.(), platform: window.Capacitor?.getPlatform?.(), cls: document.documentElement.className, ua: navigator.userAgent.includes("SahajApp"), plugins: ["BarcodeScanner","Share","Filesystem","StatusBar","Haptics","SahajNative","App","Network","Keyboard"].filter((p) => !!window.Capacitor?.Plugins?.[p]) })`);
   if (!r.native || r.platform !== "android") throw new Error("not native: " + JSON.stringify(r));
   if (!r.cls.includes("app-android") || !r.ua) throw new Error("app mode not applied: " + r.cls);
-  if (r.plugins.length !== 10) throw new Error("plugins found: " + r.plugins.join());
+  if (r.plugins.length !== 9) throw new Error("plugins found: " + r.plugins.join());
   return r.plugins.length + " plugins";
 });
 await check("create an account and land on the dashboard", async () => {

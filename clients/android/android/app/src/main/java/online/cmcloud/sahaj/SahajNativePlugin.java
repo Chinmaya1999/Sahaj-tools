@@ -7,6 +7,7 @@ import android.print.PrintManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -62,5 +63,20 @@ public class SahajNativePlugin extends Plugin {
             printHtmlView = view;
             view.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
         });
+    }
+
+    /** The website calls this once its first screen is painted; harmless if the splash is already gone. */
+    @PluginMethod
+    public void hideSplash(PluginCall call) {
+        if (getActivity() instanceof MainActivity) getActivity().runOnUiThread(() -> ((MainActivity) getActivity()).hideSplashSoon());
+        call.resolve();
+    }
+
+    /** Whether the launch splash is still on screen (used by the device tests). */
+    @PluginMethod
+    public void splashState(PluginCall call) {
+        JSObject r = new JSObject();
+        r.put("visible", getActivity() instanceof MainActivity && ((MainActivity) getActivity()).isSplashVisible());
+        call.resolve(r);
     }
 }

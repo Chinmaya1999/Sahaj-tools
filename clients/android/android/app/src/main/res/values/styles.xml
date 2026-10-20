@@ -17,10 +17,16 @@
         <item name="android:windowBackground">@color/colorWindow</item>
         <item name="android:statusBarColor">@color/colorWindow</item>
         <item name="android:navigationBarColor">@color/colorWindow</item>
+        <!-- The app is dark by default: light (white) icons on the dark bars. The website switches this for light mode. -->
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
 
+    <!-- Launch window: plain dark, no icon. The animated splash (SplashOverlay) takes over as soon as the activity starts. -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">@color/colorWindow</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_empty</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+        <item name="android:windowBackground">@color/colorWindow</item>
     </style>
 </resources>

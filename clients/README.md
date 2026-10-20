@@ -20,7 +20,7 @@ clients/
 | Native share sheet for receipts | yes | yes | n/a |
 | Hardware Back: closes a sheet, goes back, else minimises | yes | n/a | menu (Alt+←) |
 | Status bar / title bar follows light/dark theme | yes | yes | yes |
-| Splash screen and adaptive icon | yes | yes | yes |
+| Splash screen and adaptive icon | **animated** (logo pops in, the S draws itself, glow ripples, shine sweep, wordmark + progress; fades out when the site is ready) | static | static |
 | Friendly offline screen that reconnects by itself | yes | yes | yes |
 | Opens `sahaj.cmcloud.online` links inside the app (App Links) | yes | – | – |
 | Native menu, shortcuts (Ctrl+1…5), window size memory, single instance | – | – | yes |
@@ -69,4 +69,5 @@ npx cap open ios                           # build/run from Xcode
 ## Notes
 - If an IDE terminal sets `ELECTRON_RUN_AS_NODE`, Electron behaves like plain Node. `npm start` and the tests clear it for you.
 - The Android build reads `SAHAJ_URL` (default the live site). Only debug builds should ever use a local `http://` address.
+- The Android launch animation is native code: `SplashLogoView.java` (the animated mark, timeline documented at the top) and `SplashOverlay.java` (layout, minimum 1.9 s so it is always seen, 10 s failsafe, respects "remove animations"). The device test records a launch frame sequence to prove it animates.
 - To change the icon or splash, edit `shared/make-brand.mjs`, run `npm run brand` in `shared/`, then `npm run assets` in `android/` and `ios/`.

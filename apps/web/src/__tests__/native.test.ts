@@ -21,14 +21,14 @@ describe("native bridge on the plain website", () => {
 
 describe("native bridge inside the Android app (stubbed)", () => {
   it("marks the page, themes the status bar, hides the splash and routes print", async () => {
-    const setStyle = vi.fn(), setBackgroundColor = vi.fn(), hide = vi.fn(), addListener = vi.fn(), print = vi.fn();
-    stubCapacitor({ StatusBar: { setStyle, setBackgroundColor }, SplashScreen: { hide }, App: { addListener }, SahajNative: { print } });
+    const setStyle = vi.fn(), setBackgroundColor = vi.fn(), hide = vi.fn(), hideSplash = vi.fn(), addListener = vi.fn(), print = vi.fn();
+    stubCapacitor({ StatusBar: { setStyle, setBackgroundColor }, SplashScreen: { hide }, App: { addListener }, SahajNative: { print, hideSplash } });
     initNative("dark");
     expect(document.documentElement.classList.contains("app-android")).toBe(true);
     expect(setStyle).toHaveBeenCalledWith({ style: "DARK" }); expect(setBackgroundColor).toHaveBeenCalledWith({ color: "#050816" });
     expect(addListener).toHaveBeenCalledWith("backButton", expect.any(Function));
     window.print(); expect(print).toHaveBeenCalled();
-    await new Promise((r) => requestAnimationFrame(() => r(null))); expect(hide).toHaveBeenCalled();
+    await new Promise((r) => requestAnimationFrame(() => r(null))); expect(hideSplash).toHaveBeenCalled(); expect(hide).toHaveBeenCalled();
     setSystemBars("light"); expect(setStyle).toHaveBeenLastCalledWith({ style: "LIGHT" }); expect(setBackgroundColor).toHaveBeenLastCalledWith({ color: "#eef3ff" });
   });
   it("saves generated files through the share sheet instead of a download link", async () => {

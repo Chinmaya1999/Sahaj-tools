@@ -31,14 +31,6 @@ const config: CapacitorConfig = {
     backgroundColor: "#050816",
   },
   plugins: {
-    SplashScreen: {
-      launchAutoHide: true,
-      launchShowDuration: 2500, // safety net; the web app hides it as soon as it has rendered
-      backgroundColor: "#050816",
-      androidSplashResourceName: "splash",
-      androidScaleType: "CENTER_CROP",
-      showSpinner: false,
-    },
     StatusBar: { overlaysWebView: false, style: "DARK", backgroundColor: "#050816" },
     Keyboard: { resizeOnFullScreen: true },
   },

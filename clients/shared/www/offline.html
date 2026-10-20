@@ -35,6 +35,7 @@
   function go() { s.textContent = "Connecting…"; window.location.replace(LIVE); }
   document.getElementById("retry").addEventListener("click", go);
   window.addEventListener("online", go);                 // came back online: reconnect on its own
+  try { window.Capacitor.Plugins.SahajNative.hideSplash(); } catch (e) {}
   try { window.Capacitor.Plugins.SplashScreen.hide(); } catch (e) {}
 </script>
 </body>

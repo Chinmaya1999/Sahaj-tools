@@ -30,8 +30,8 @@ export function initNative(theme: "dark" | "light") {
   // Android's WebView has no print dialog of its own. Route print buttons to the native print service instead.
   if (isMobileApp() && plugin("SahajNative")?.print) window.print = () => { void plugin("SahajNative")!.print({ name: document.title || "Sahaj" }); };
   installBackButton();
-  // Everything has rendered: remove the native splash screen.
-  requestAnimationFrame(() => { void plugin("SplashScreen")?.hide?.({ fadeOutDuration: 200 }); });
+  // Everything has rendered: let the app's animated splash finish and fade out (the app also dismisses it itself when the page has loaded).
+  requestAnimationFrame(() => { void plugin("SahajNative")?.hideSplash?.(); void plugin("SplashScreen")?.hide?.({ fadeOutDuration: 200 }); });
 }
 
 /** Screens where Back should leave the app instead of going to an earlier page. */
