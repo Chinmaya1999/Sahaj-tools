@@ -34,7 +34,7 @@ export class Page {
       const msg = JSON.parse(ev.data);
       if (msg.id && this.pending.has(msg.id)) { const { res, rej } = this.pending.get(msg.id); this.pending.delete(msg.id); msg.error ? rej(new Error(msg.error.message)) : res(msg.result); }
       else if (msg.method === "Runtime.exceptionThrown") this.errors.push("exception: " + (msg.params.exceptionDetails.exception?.description ?? msg.params.exceptionDetails.text).split("\n")[0]);
-      else if (msg.method === "Runtime.consoleAPICalled" && msg.params.type === "error" && !/Error injecting safe area CSS/.test(JSON.stringify(msg.params.args))) this.errors.push("console: " + msg.params.args.map((a) => a.value ?? a.description ?? "").join(" ").slice(0, 160));
+      else if (msg.method === "Runtime.consoleAPICalled" && msg.params.type === "error" && !/Error injecting safe area CSS/.test(JSON.stringify(msg.params.args))) this.errors.push("console: " + msg.params.args.map((a) => a.value ?? (a.preview?.properties ? JSON.stringify(Object.fromEntries(a.preview.properties.map((p) => [p.name, p.value]))) : a.description) ?? "").join(" ").slice(0, 300));
     };
   }
   send(method, params = {}) { const id = ++this.id; return new Promise((res, rej) => { this.pending.set(id, { res, rej }); this.ws.send(JSON.stringify({ id, method, params })); setTimeout(() => this.pending.has(id) && (this.pending.delete(id), rej(new Error("CDP timeout: " + method))), 30_000); }); }

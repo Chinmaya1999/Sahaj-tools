@@ -9,7 +9,7 @@ Date: 2026-10-20 · Build under test: `main` (production tag `a8d149c4cee6`) · 
 | Type checking (shared, API, web) | 0 errors |
 | Shared logic unit tests | 19 / 19 |
 | API and business-logic tests | 98 / 98 |
-| Web component tests | 10 / 10 |
+| Web component and native-bridge tests | 17 / 17 |
 | Browser tests (Chromium, real UI, demo data) | 45 / 45 (0 flaky, 0 skipped, 140 s) |
 | Production dependency audit | 0 vulnerabilities |
 | Production build | succeeds |
@@ -93,3 +93,17 @@ npm run test:e2e                       # all browser tests (starts its own isola
 npx playwright test tests/e2e/demo-shop.spec.ts   # the UI demo walkthrough only
 ```
 CI (`.github/workflows/ci-cd.yml`) runs all of this on every push and deploys only if it passes.
+
+## Apps (added 2026-10-20)
+| Check | Result |
+|---|---|
+| Android app on a Pixel 9 Pro emulator (Android 16), local test server | 19 / 19 device checks |
+| Android app against the **live** site, 3 runs (one after a clean reinstall) | 19 / 19, 19 / 19, 19 / 19 (a first live run had 2 timing failures that did not recur) |
+| CI-built signed Android APK | signature verified (v2), package `online.cmcloud.sahaj`, target Android 16, not debuggable, certificate matches the app-links file |
+| Windows app (Electron) smoke test | 12 / 12 (isolation, menus, theme, safe links, file save, offline) |
+| Windows installer built in CI; app starts and stays running | pass |
+| iOS app compiled in CI (device and simulator) | pass |
+
+Device checks cover: sign-in screen on launch, all 10 native plugins present, sign-up, phone workspace layout, login surviving an app restart, splash dismissal, a sale with part payment, camera-scan buttons, barcode lookup, the system share sheet and file written for a CSV, Android print service for the page and for a receipt, hardware back (go back / close a sheet / minimise), light-dark status bar, offline screen with automatic reconnect, no crashes or ANRs, no JavaScript errors.
+
+Not tested: a physical phone, camera scanning of a real barcode (the emulator has no real camera), a real UPI/card payment inside the app, running the iOS app (no Xcode on the development Mac; it compiles in CI), and installing the Windows installer on a real Windows PC beyond the CI start-up check.
