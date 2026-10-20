@@ -33,7 +33,9 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Cache MongoDB test binary
         uses: actions/cache@v4
-        with: { path: node_modules/.cache/mongodb-memory-server, key: mongo-bin-${{ runner.os }}-${{ hashFiles('package-lock.json') }} }
+        with:
+          path: node_modules/.cache/mongodb-memory-server
+          key: mongo-bin-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm run typecheck
       - run: npm test
 
@@ -48,10 +50,14 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Cache MongoDB test binary
         uses: actions/cache@v4
-        with: { path: node_modules/.cache/mongodb-memory-server, key: mongo-bin-${{ runner.os }}-${{ hashFiles('package-lock.json') }} }
+        with:
+          path: node_modules/.cache/mongodb-memory-server
+          key: mongo-bin-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Cache Playwright browsers
         uses: actions/cache@v4
-        with: { path: ~/.cache/ms-playwright, key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }} }
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
