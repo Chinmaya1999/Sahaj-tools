@@ -45,7 +45,7 @@ const api = (path, body, method = "POST") => page.eval(`fetch(${JSON.stringify(p
 
 await check("app opens on the animated welcome page (not the sign-in form)", async () => {
   await page.waitUrl(/\/welcome$/, 25_000);
-  await page.waitText(/Your whole business/);
+  await page.waitText(/in your pocket/);
   await page.waitControl("Get started free"); await page.waitControl("I already have an account");
   if (await page.eval(`!!document.querySelector('nav[aria-label="Main"]')`)) throw new Error("marketing navigation is visible");
   if (!(await page.eval(`!!document.querySelector("canvas")`))) throw new Error("the 3D hologram scene (canvas) is missing");
@@ -170,8 +170,12 @@ await check("offline: friendly screen, then reconnects on its own", async () => 
   await page.waitFor(`!location.href.includes("offline.html")`, "automatic reconnect", 45_000);
   await page.waitText(/^Hello, Device/, 25_000);
 });
-await check("no crashes or ANRs in the device log", async () => {
-  const bad = adb("logcat", "-d", "-v", "brief").split("\n").filter((l) => /FATAL EXCEPTION|ANR in online\.cmcloud|AndroidRuntime.*online\.cmcloud/.test(l));
+await check("no crashes or ANRs in the Sahaj app (other processes on the device are ignored)", async () => {
+  const lines = adb("logcat", "-d", "-v", "brief").split("\n"); const bad = [];
+  lines.forEach((l, i) => {
+    if (/FATAL EXCEPTION/.test(l) && lines.slice(i, i + 4).some((x) => x.includes("Process: online.cmcloud.sahaj"))) bad.push(l);
+    if (/ANR in online\.cmcloud/.test(l)) bad.push(l);
+  });
   if (bad.length) throw new Error(bad[0]);
 });
 await check("no JavaScript errors in the app", async () => { if (jsErrors().length) throw new Error(jsErrors().slice(0, 3).join(" | ")); });

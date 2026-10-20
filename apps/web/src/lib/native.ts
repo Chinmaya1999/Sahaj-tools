@@ -35,7 +35,7 @@ export function initNative(theme: "dark" | "light") {
 }
 
 /** Screens where Back should leave the app instead of going to an earlier page. */
-const ROOT_SCREENS = new Set(["/account", "/login", "/register", "/"]);
+const ROOT_SCREENS = new Set(["/account", "/welcome", "/"]);
 
 /**
  * Android back button: first close an open sheet, menu or search; otherwise go back one page; at a top-level screen
