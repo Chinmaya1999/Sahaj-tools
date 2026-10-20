@@ -27,12 +27,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with: { node-version: 22, cache: npm }
       - run: npm ci --no-audit --no-fund
       - name: Cache MongoDB test binary
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: node_modules/.cache/mongodb-memory-server
           key: mongo-bin-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -44,23 +44,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with: { node-version: 22, cache: npm }
       - run: npm ci --no-audit --no-fund
       - name: Cache MongoDB test binary
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: node_modules/.cache/mongodb-memory-server
           key: mongo-bin-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with: { name: playwright-report, path: playwright-report, retention-days: 7 }
 
@@ -69,9 +69,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22 }
       - name: Known vulnerabilities in production dependencies
         run: npm audit --omit=dev --audit-level=high
@@ -86,16 +86,16 @@ jobs:
     outputs:
       tag: ${{ steps.meta.outputs.tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: meta
         run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
       - name: Docker Hub login (avoids anonymous pull limits)
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with: { username: "${{ secrets.DOCKERHUB_USERNAME }}", password: "${{ secrets.DOCKERHUB_TOKEN }}" }
       - name: Build api + web (shared layers, cached between runs)
-        uses: docker/bake-action@v6
+        uses: docker/bake-action@v7
         env: { NS: "${{ env.NS }}", TAG: "${{ steps.meta.outputs.tag }}" }
         with:
           load: true
@@ -103,7 +103,7 @@ jobs:
             *.cache-from=type=gha,scope=sahaj
             *.cache-to=type=gha,mode=max,scope=sahaj
       - name: Scan the API image (fail on fixable critical vulnerabilities)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.NS }}/sahaj-api:${{ steps.meta.outputs.tag }}
           severity: CRITICAL
@@ -128,7 +128,7 @@ jobs:
     env:
       TAG: ${{ needs.build.outputs.tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { sparse-checkout: deploy }
       - name: Prepare SSH (dedicated deploy key, pinned host key)
         run: |
