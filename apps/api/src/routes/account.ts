@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { verify } from "@node-rs/argon2";
+import type { Model } from "mongoose";
 import { z } from "zod";
 import { supportSchema } from "@ek/shared";
 import { COOKIE, clearSessionCookie, requireAuth } from "../lib/auth.js";
@@ -8,6 +9,10 @@ import * as M from "../models/index.js";
 import { audit } from "../services/audit.js";
 import { allAccess } from "../services/access.js";
 import { daysUntil } from "@ek/shared";
+
+/** Every collection that holds a seller's MiniStock records (all keyed by `owner`). Add new ones here so export and deletion stay complete. */
+const MINISTOCK_BY_KEY: Record<string, Model<any>> = { customers: M.Customer, suppliers: M.Supplier, salesOrders: M.SaleOrder, salePayments: M.SalePayment, saleReturns: M.SaleReturn, purchaseOrders: M.PurchaseOrder, expenses: M.Expense, stockCounts: M.StockCount, cashCloses: M.CashClose };
+const MINISTOCK_MODELS = Object.values(MINISTOCK_BY_KEY);
 
 export const accountRouter = Router();
 accountRouter.use(requireAuth);
@@ -55,9 +60,10 @@ accountRouter.get("/export", wrap(async (req, res) => {
     M.InvitationDesign.find({ owner: uid }).lean(), M.MiniBusinessPage.findOne({ owner: uid }).lean(), M.Order.find({ user: uid }).lean(),
     M.Entitlement.find({ user: uid }).lean(), M.DownloadRecord.find({ user: uid }).lean(), M.SupportRequest.find({ user: uid }).lean(),
   ]);
+  const ministock = Object.fromEntries(await Promise.all(Object.entries(MINISTOCK_BY_KEY).map(async ([k, m]) => [k, await m.find({ owner: uid }).lean()] as const)));
   await audit(req, "account.export");
   res.setHeader("Content-Disposition", 'attachment; filename="everydaykit-data.json"');
-  res.json({ exportedAt: new Date(), user, business, invoices, inventoryItems: items, stockMovements: movements, resumes, invitations, miniBusinessPage: page, orders, entitlements, downloads, supportRequests: support });
+  res.json({ exportedAt: new Date(), user, business, invoices, inventoryItems: items, stockMovements: movements, resumes, invitations, miniBusinessPage: page, orders, entitlements, downloads, supportRequests: support, ministock });
 }));
 
 /** Permanent deletion. Order/payment records are retained without a user link for accounting & refund obligations. */
@@ -73,6 +79,8 @@ accountRouter.delete("/", wrap(async (req, res) => {
     M.InvitationDesign.deleteMany({ owner: uid }), M.MiniBusinessPage.deleteMany({ owner: uid }), M.Entitlement.deleteMany({ user: uid }),
     M.DownloadRecord.deleteMany({ user: uid }), M.AiUsage.deleteMany({ user: uid }), M.SupportRequest.updateMany({ user: uid }, { user: null, name: "deleted", email: "deleted", }),
     M.Order.updateMany({ user: uid }, { userDeleted: true }),
+    // MiniStock business data
+    ...MINISTOCK_MODELS.map((m) => m.deleteMany({ owner: uid })),
   ]);
   await audit(req, "account.deleted", String(uid), undefined, null);
   await M.User.deleteOne({ _id: uid });

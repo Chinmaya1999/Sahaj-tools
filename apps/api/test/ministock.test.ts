@@ -236,3 +236,18 @@ describe("MiniStock isolation and auth", () => {
     expect((await sellNow(c, p.id, 1)).body.order.lines[0].unitPricePaise).toBe(99900);
   });
 });
+
+describe("MiniStock and account data rights", () => {
+  it("exports all MiniStock records and deletes every one of them with the account", async () => {
+    const { c, id } = await signup();
+    const p = await mk(c); await sellNow(c, p.id, 2, { payments: [{ method: "cash", amountPaise: 50000 }] });
+    await c.post("/api/ministock/customers").send({ name: "Ravi" }); await c.post("/api/ministock/suppliers").send({ name: "Fab Co" });
+    await c.post("/api/ministock/expenses").send({ category: "Rent", amountPaise: 1000, date: new Date().toISOString() });
+    const ex = (await c.get("/api/account/export")).body.ministock;
+    expect(ex.salesOrders).toHaveLength(1); expect(ex.salePayments).toHaveLength(1); expect(ex.customers).toHaveLength(1); expect(ex.suppliers).toHaveLength(1); expect(ex.expenses).toHaveLength(1);
+    const { PASSWORD } = await import("./helpers.js");
+    expect((await c.delete("/api/account").send({ password: PASSWORD, confirm: "DELETE" })).status).toBe(200);
+    const M: any = await import("../src/models/index.js");
+    for (const name of ["Customer", "Supplier", "SaleOrder", "SalePayment", "SaleReturn", "PurchaseOrder", "Expense", "StockCount", "CashClose", "InventoryItem", "StockMovement"]) expect(await M[name].countDocuments({ owner: id }), name).toBe(0);
+  });
+});
