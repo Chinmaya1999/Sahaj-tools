@@ -79,3 +79,17 @@ describe("Login form", () => {
     expect(f.mock.calls.some((c) => String(c[0]).includes("/auth/login"))).toBe(false);
   });
 });
+
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+describe("page shell and Content-Security-Policy", () => {
+  it("has no inline <script> (the server's CSP would block it and break features such as the saved theme)", () => {
+    const html = readFileSync(resolve(__dirname, "../../index.html"), "utf8");
+    const inline = [...html.matchAll(/<script\b([^>]*)>/gi)].filter((m) => !/\bsrc\s*=/.test(m[1]));
+    expect(inline).toHaveLength(0);
+    expect(html).toContain('src="/theme-init.js"');
+  });
+  it("ships the theme bootstrap as a static file", () => {
+    expect(readFileSync(resolve(__dirname, "../../public/theme-init.js"), "utf8")).toContain("sahaj-theme");
+  });
+});

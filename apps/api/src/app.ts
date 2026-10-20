@@ -37,9 +37,11 @@ export function createApp(opts: AppOptions = {}) {
     contentSecurityPolicy: { directives: {
       defaultSrc: ["'self'"], baseUri: ["'self'"], objectSrc: ["'none'"], frameAncestors: ["'none'"],
       scriptSrc: ["'self'", "https://checkout.razorpay.com", "https://sdk.cashfree.com"], styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"], imgSrc: ["'self'", "data:", "blob:"],
+      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"], imgSrc: ["'self'", "data:", "blob:", "https://*.cashfree.com", "https://*.razorpay.com"],
       connectSrc: ["'self'", "https://lumberjack.razorpay.com", "https://api.razorpay.com", "https://sdk.cashfree.com", "https://api.cashfree.com", "https://sandbox.cashfree.com", "https://payments.cashfree.com"], frameSrc: ["https://api.razorpay.com", "https://checkout.razorpay.com", "https://sdk.cashfree.com", "https://payments.cashfree.com", "https://sandbox.cashfree.com"],
       workerSrc: ["'self'", "blob:"],
+      // Cashfree's checkout posts a form to api/sandbox.cashfree.com; without this the payment window cannot open.
+      formAction: ["'self'", "https://*.cashfree.com", "https://api.razorpay.com", "https://checkout.razorpay.com"],
     } },
     crossOriginEmbedderPolicy: false,
   }));

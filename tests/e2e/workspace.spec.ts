@@ -44,4 +44,13 @@ test.describe("signed-in workspace", () => {
     await expect(page).toHaveURL(/account\/settings/); await expect(page.getByRole("dialog", { name: "Menu" })).toHaveCount(0);
     await ctx.close();
   });
+
+  test("light mode is remembered across reloads and applied before first paint", async ({ page }) => {
+    await register(page);
+    await page.getByRole("switch", { name: "Light mode" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    expect(await page.evaluate(() => localStorage.getItem("sahaj-theme"))).toBe("light");
+  });
 });
