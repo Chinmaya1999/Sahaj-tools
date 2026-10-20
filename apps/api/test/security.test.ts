@@ -7,9 +7,9 @@ describe("Content-Security-Policy", () => {
     const csp = String((await request(app).get("/api/health")).headers["content-security-policy"]);
     const dir = (name: string) => csp.split(";").find((d) => d.trim().startsWith(name + " ")) ?? "";
     expect(dir("form-action")).toContain("https://*.cashfree.com");
-    expect(dir("script-src")).toContain("https://sdk.cashfree.com");
-    expect(dir("frame-src")).toContain("https://payments.cashfree.com");
-    expect(dir("connect-src")).toContain("https://api.cashfree.com");
+    expect(dir("script-src")).toContain("https://*.cashfree.com");
+    expect(dir("frame-src")).toContain("https://*.cashfree.com"); // the payment window is framed from api.cashfree.com
+    expect(dir("connect-src")).toContain("https://*.cashfree.com");
   });
   it("still blocks inline scripts, framing and plugins", async () => {
     const csp = String((await request(app).get("/api/health")).headers["content-security-policy"]);
