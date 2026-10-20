@@ -98,6 +98,8 @@ jobs:
         uses: docker/bake-action@v7
         env: { NS: "${{ env.NS }}", TAG: "${{ steps.meta.outputs.tag }}" }
         with:
+          source: .
+          files: docker-bake.hcl
           load: true
           set: |
             *.cache-from=type=gha,scope=sahaj
