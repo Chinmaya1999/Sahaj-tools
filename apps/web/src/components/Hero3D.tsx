@@ -10,13 +10,28 @@ export function Hero3D() {
   const sx = useSpring(mx, { stiffness: 80, damping: 18 }), sy = useSpring(my, { stiffness: 80, damping: 18 });
   const rotY = useTransform(sx, [-0.5, 0.5], [-14, 14]), rotX = useTransform(sy, [-0.5, 0.5], [10, -10]);
   const pointer = useRef({ x: 0, y: 0 });
+  const lastTouch = useRef(0);
   const [qr, setQr] = useState("");
+  // Idle motion: slowly sway the whole scene until someone moves a pointer or finger over it.
+  useEffect(() => {
+    if (reduce) return;
+    let raf = 0; const t0 = performance.now();
+    const tick = (now: number) => {
+      if (now - lastTouch.current > 1600) {
+        const t = (now - t0) / 1000; const x = Math.sin(t * 0.55) * 0.34, y = Math.cos(t * 0.42) * 0.22;
+        mx.set(x); my.set(y); pointer.current = { x, y };
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [reduce, mx, my]);
   useEffect(() => { QRCode.toDataURL("https://example.com", { margin: 0, width: 120, color: { dark: "#1f1d1a", light: "#ffffff" } }).then(setQr); }, []);
   const float = (d: number, amp = 8) => (reduce ? {} : { animate: { y: [0, -amp, 0] }, transition: { duration: 5 + d, repeat: Infinity, ease: "easeInOut" as const } });
   return (
-    <div aria-hidden className="ui-zoom relative mx-auto h-[440px] w-full max-w-[540px] select-none [perspective:1200px]"
-      onPointerMove={(e) => { if (reduce) return; const r = e.currentTarget.getBoundingClientRect(); const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5; mx.set(px); my.set(py); pointer.current = { x: px, y: py }; }}
-      onPointerLeave={() => { mx.set(0); my.set(0); pointer.current = { x: 0, y: 0 }; }}>
+    <div aria-hidden className="ui-zoom relative mx-auto h-[440px] w-full max-w-[540px] select-none [perspective:1200px] [touch-action:pan-y]"
+      onPointerMove={(e) => { if (reduce) return; const r = e.currentTarget.getBoundingClientRect(); const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5; lastTouch.current = performance.now(); mx.set(px); my.set(py); pointer.current = { x: px, y: py }; }}
+      onPointerLeave={() => { lastTouch.current = 0; }}>
       <div className="absolute inset-6 rounded-[2rem] bg-gradient-to-br from-brand/25 via-holo-violet/10 to-transparent blur-2xl" />
       <HoloScene pointer={pointer} />
       <motion.div style={reduce ? undefined : { rotateX: rotX, rotateY: rotY, transformStyle: "preserve-3d" }} className="absolute inset-0">

@@ -209,7 +209,8 @@ export function AppShell() {
       </AnimatePresence>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="no-print sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-line bg-paper/80 px-3 backdrop-blur-xl pt-[env(safe-area-inset-top)] sm:px-5 lg:h-16">
+        <header className="no-print sticky top-0 z-30 border-b border-line bg-paper/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+          <div className="flex h-14 items-center gap-2 px-3 sm:px-5 lg:h-16">
           <button type="button" aria-label="Open menu" className="grid h-10 w-10 place-items-center rounded-xl border border-line lg:hidden" onClick={() => setDrawer(true)}>☰</button>
           {loc.pathname !== "/account" && <BackButton />}
           <p className="min-w-0 flex-1 truncate font-display text-lg font-semibold lg:hidden">{title}</p>
@@ -220,6 +221,7 @@ export function AppShell() {
           <button type="button" onClick={() => setPalette(true)} aria-label="Search" className="grid h-10 w-10 place-items-center rounded-xl border border-line lg:hidden">🔍</button>
           <QuickCreate />
           <ThemeToggle />
+          </div>
         </header>
 
         <main id="main" className="min-w-0 flex-1 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-10" key={loc.pathname.split("/")[1] + (loc.pathname.split("/")[2] ?? "")}>

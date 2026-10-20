@@ -16,8 +16,7 @@ export { Logo, LogoMark } from "./Logo";
 /** Goes to the previous page; if the visitor landed here directly, goes home instead of leaving the site. */
 function BackBar() {
   const nav = useNavigate(); const loc = useLocation();
-  if (loc.pathname === "/" || loc.pathname.startsWith("/p/")) return null;
-  if (isApp() && ["/login", "/register"].includes(loc.pathname)) return null; // the apps open on these screens: nothing to go back to
+  if (loc.pathname === "/" || loc.pathname === "/welcome" || loc.pathname.startsWith("/p/")) return null;
   const canGoBack = (window.history.state?.idx ?? 0) > 0;
   return (
     <div className="no-print mx-auto w-full max-w-6xl px-4 pt-4">
@@ -49,6 +48,7 @@ export function Layout() {
   const navCls = ({ isActive }: { isActive: boolean }) => cx("rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper-2", isActive && "bg-paper-2");
   // Signed-in users get the workspace (sidebar, search, quick-create); visitors get the marketing site.
   if (user) return <AppShell />;
+  if (loc.pathname === "/welcome") return <main id="main"><Outlet /></main>; // the app's landing page draws its own full-screen layout
   const inApp = isApp();
   return (
     <div className="flex min-h-screen flex-col">

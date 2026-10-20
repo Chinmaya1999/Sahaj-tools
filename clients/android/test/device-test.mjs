@@ -43,10 +43,13 @@ const email = `device${Date.now()}@example.com`, PW = "Dev1ce-test-pass-1";
 const jsErrors = () => page.errors.filter((e) => !/favicon|404|\.map/.test(e));
 const api = (path, body, method = "POST") => page.eval(`fetch(${JSON.stringify(path)}, { method: ${JSON.stringify(method)}, credentials: "include", headers: { "Content-Type": "application/json", "X-Requested-With": "ek" }, body: JSON.stringify(${JSON.stringify(body)}) }).then(async (r) => ({ status: r.status, body: await r.json().catch(() => ({})) }))`);
 
-await check("app opens on the sign-in screen with no marketing navigation", async () => {
-  await page.waitUrl(/\/login$/);
+await check("app opens on the animated welcome page (not the sign-in form)", async () => {
+  await page.waitUrl(/\/welcome$/, 25_000);
+  await page.waitText(/Your whole business/);
+  await page.waitControl("Get started free"); await page.waitControl("I already have an account");
   if (await page.eval(`!!document.querySelector('nav[aria-label="Main"]')`)) throw new Error("marketing navigation is visible");
-  screenshot("android-login");
+  if (!(await page.eval(`!!document.querySelector("canvas")`))) throw new Error("the 3D hologram scene (canvas) is missing");
+  await sleep(900); screenshot("android-welcome");
   return await page.url();
 });
 await check("launch animation plays: the splash changes frame to frame, then the app appears", async () => {
@@ -66,8 +69,12 @@ await check("native bridge is present with every plugin", async () => {
   if (r.plugins.length !== 9) throw new Error("plugins found: " + r.plugins.join());
   return r.plugins.length + " plugins";
 });
-await check("create an account and land on the dashboard", async () => {
-  await page.click("Create an account"); await page.waitUrl(/\/register$/);
+await check("sign-in is reachable from the welcome page and Back returns to it", async () => {
+  await page.click("I already have an account"); await page.waitUrl(/\/login$/); await page.waitText("Welcome back");
+  await back(); await page.waitUrl(/\/welcome$/, 8000);
+});
+await check("create an account from the welcome page and land on the dashboard", async () => {
+  await page.click("Get started free"); await page.waitUrl(/\/register$/);
   await page.fill("Name", "Device Tester"); await page.fill("Email", email); await page.fill("Password", PW);
   await page.click("Create account");
   await page.waitUrl(/\/account$/); await page.waitText(/^Hello, Device/);
@@ -77,6 +84,19 @@ await check("phone workspace: top bar, bottom tabs, no sideways scroll", async (
   await page.waitFor(`!!document.querySelector('nav[aria-label="Quick tabs"]')`, "bottom tabs");
   const over = await page.eval("document.documentElement.scrollWidth - document.documentElement.clientWidth");
   if (over > 1) throw new Error("page overflows by " + over + "px");
+});
+await check("the page sits below the status bar and above the gesture bar (same on every phone)", async () => {
+  sh("uiautomator dump /sdcard/ui.xml >/dev/null 2>&1");
+  const xml = sh("cat /sdcard/ui.xml"); sh("rm -f /sdcard/ui.xml");
+  const m = xml.match(/class="android\.webkit\.WebView"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);
+  if (!m) throw new Error("WebView bounds not found");
+  const [top, bottom] = [Number(m[2]), Number(m[4])];
+  const screenH = Number(sh("wm size").match(/(\d+)x(\d+)/)[2]);
+  if (top < 60) throw new Error("page starts under the status bar (top=" + top + "px)");
+  if (bottom > screenH - 20) throw new Error("page runs under the gesture bar (bottom=" + bottom + " of " + screenH + ")");
+  const env = await page.eval(`(() => { const d = document.createElement("div"); d.style.cssText = "position:fixed;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)"; document.body.append(d); const r = [getComputedStyle(d).paddingTop, getComputedStyle(d).paddingBottom]; d.remove(); return r; })()`);
+  if (env[0] !== "0px" || env[1] !== "0px") throw new Error("safe-area insets leaked into the page: " + env);
+  return `page spans ${top}px to ${bottom}px of ${screenH}px`;
 });
 await check("session survives an app restart", async () => { page.close(); sh("input keyevent 3"); await sleep(1500); /* home: the app is backgrounded like a real user would */ page = await launchApp(APP); await page.waitUrl(/\/account$/); await page.waitText(/^Hello, Device/); });
 await check("splash screen is dismissed once the app has loaded", async () => {

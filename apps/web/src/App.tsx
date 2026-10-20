@@ -15,6 +15,7 @@ import { AccountLayout, DownloadHistory, Library, Orders, Overview, Settings } f
 import PublicPage from "./pages/PublicPage";
 import NotFound from "./pages/NotFound";
 import ToolPage from "./tools";
+import Welcome from "./pages/Welcome";
 import { useAuth } from "./lib/auth";
 import { isApp } from "./lib/native";
 
@@ -23,7 +24,7 @@ function HomeOrWorkspace() {
   const { user, loading } = useAuth();
   if (loading) return <div className="grid place-items-center py-24"><Spinner /></div>;
   if (user) return <Navigate to="/account" replace />;
-  return isApp() ? <Navigate to="/login" replace /> : <Home />; // the apps open on sign-in; the website shows the marketing page
+  return isApp() ? <Navigate to="/welcome" replace /> : <Home />; // the apps open on the animated welcome page; the website shows the marketing page
 }
 /** Sign-in and sign-up pages are skipped when you are already signed in. */
 function GuestOnly({ children }: { children: React.ReactNode }) {
@@ -38,6 +39,7 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<HomeOrWorkspace />} />
+        <Route path="welcome" element={<Welcome />} />
         <Route path="explore" element={<Explore />} />
         <Route path="free-tools" element={<FreeTools />} />
         <Route path="pricing" element={<Pricing />} />

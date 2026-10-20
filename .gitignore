@@ -16,3 +16,4 @@ test-results
 .env.*
 !.env.example
 deploy/.env.prod
+clients/downloads/

@@ -93,7 +93,7 @@ const STATIC_SEO: Record<string, SeoMeta> = {
   "/refunds": { title: `Refund Policy | ${SITE}`, description: "Sahaj's refund and cancellation policy.", keywords: [] },
 };
 
-const PRIVATE_PREFIXES = ["/account", "/admin", "/checkout", "/login", "/register", "/forgot-password", "/reset-password", "/p/"];
+const PRIVATE_PREFIXES = ["/welcome", "/account", "/admin", "/checkout", "/login", "/register", "/forgot-password", "/reset-password", "/p/"];
 
 export const SEO_PUBLIC_PATHS: string[] = [...Object.keys(STATIC_SEO), ...PRODUCTS.flatMap((p) => [`/tools/${p.slug}`, `/tools/${p.slug}/about`])];
 

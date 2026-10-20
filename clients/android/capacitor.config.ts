@@ -33,6 +33,8 @@ const config: CapacitorConfig = {
   plugins: {
     StatusBar: { overlaysWebView: false, style: "DARK", backgroundColor: "#050816" },
     Keyboard: { resizeOnFullScreen: true },
+    // We inset the page natively in MainActivity.applySystemBarInsets(), the same on every phone, instead of letting Capacitor pick a mode per WebView version.
+    SystemBars: { insetsHandling: "disable" },
   },
 };
 

@@ -13,7 +13,7 @@ clients/
 ## What the apps add to the website
 | Feature | Android | iOS | Windows |
 |---|---|---|---|
-| Opens on sign-in, stays signed in across restarts | yes | yes | yes |
+| Opens on an animated 3D hologram welcome page (then sign-in or sign-up), stays signed in across restarts | yes | yes | yes |
 | Camera barcode / QR scanning in Sell, Products and order packing | yes | yes | n/a (typed or scanner-as-keyboard) |
 | Save / share generated files (PDF, CSV, images) through the system sheet | yes | yes | Save dialog |
 | Print invoices, receipts and reports (system print service / PDF) | yes | yes | yes |
@@ -67,6 +67,7 @@ npx cap open ios                           # build/run from Xcode
 - **Windows**: the installer is unsigned, so SmartScreen shows "unknown publisher" until you add a code-signing certificate (set `CSC_LINK` and `CSC_KEY_PASSWORD` secrets and remove `CSC_IDENTITY_AUTO_DISCOVERY` in the workflow).
 
 ## Notes
+- **System bars and notch.** The Android app insets the page itself (`MainActivity.applySystemBarInsets`, with Capacitor's `SystemBars.insetsHandling` set to `disable`), so CSS `env(safe-area-inset-*)` is 0 inside the Android WebView and the layout is identical on every phone. Capacitor's own mode depends on the phone's WebView version, which is why a top bar can look right on one phone and collide with the status bar on another. iOS and the website do use `env()`, so every fixed bar puts the safe-area padding on an outer element and gives the inner row its fixed height (there is a browser test with an emulated notch). The device test checks the WebView's on-screen bounds.
 - If an IDE terminal sets `ELECTRON_RUN_AS_NODE`, Electron behaves like plain Node. `npm start` and the tests clear it for you.
 - The Android build reads `SAHAJ_URL` (default the live site). Only debug builds should ever use a local `http://` address.
 - The Android launch animation is native code: `SplashLogoView.java` (the animated mark, timeline documented at the top) and `SplashOverlay.java` (layout, minimum 1.9 s so it is always seen, 10 s failsafe, respects "remove animations"). The device test records a launch frame sequence to prove it animates.
