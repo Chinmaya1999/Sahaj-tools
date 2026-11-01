@@ -16,7 +16,7 @@
     "@capacitor-mlkit/barcode-scanning": "8.2.1",
     "@capacitor/android": "8.5.3",
     "@capacitor/app": "8.1.2",
-    "@capacitor/core": "8.5.3",
+    "@capacitor/core": "8.6.0",
     "@capacitor/filesystem": "8.1.5",
     "@capacitor/haptics": "8.0.2",
     "@capacitor/keyboard": "8.0.6",
